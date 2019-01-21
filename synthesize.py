@@ -9,6 +9,7 @@ from hparams import hparams
 from infolog import log
 from tacotron.synthesize import tacotron_synthesize
 from wavenet_vocoder.synthesize import wavenet_synthesize
+import re
 from pypinyin import pinyin, Style
 
 def p(input):
@@ -17,6 +18,12 @@ def p(input):
 	for i in arr:
 		str += i[0] + " "
 	return str
+
+def replace_punc(text):
+	return text.translate(text.maketrans("，。？：；！“”、（）",",.?:;!\"\",()"))
+
+def remove_prosody(text):
+	return re.sub(r'#[0-9]','',text)
 
 
 def prepare_run(args):
@@ -74,7 +81,7 @@ def main():
 
 	accepted_models = ['Tacotron', 'WaveNet', 'Tacotron-2']
 
-	sentences = [p(x).rstrip('\n') for x in get_sentences(args)]
+	sentences = [p(remove_prosody(replace_punc(x))).rstrip('\n') for x in get_sentences(args)]
 	print(sentences)
 
 	if args.model not in accepted_models:

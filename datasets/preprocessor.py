@@ -33,7 +33,7 @@ def segment(zhText,pinyinText):
 	return result
 
 def replace_punc(text):
-	return text.translate(text.maketrans("，。？：！“”、（）",",.?:!\"\",()"))
+	return text.translate(text.maketrans("，。？：；！“”、（）",",.?:;!\"\",()"))
 
 def remove_prosody(text):
 	return re.sub(r'#[0-9]','',text)

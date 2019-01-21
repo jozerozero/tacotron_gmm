@@ -156,6 +156,7 @@ logs will be stored inside **logs-Wavenet**.
 # Synthesis
 
 ## CUDA_VISIBLE_DEVICES=4 python demo_server.py
+## CUDA_VISIBLE_DEVICES=0 python synthesize.py --text_list=dingxiang_tests.txt --mode=eval
 
 To **synthesize audio** in an **End-to-End** (text to audio) manner (both models at work):
 

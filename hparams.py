@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-NGPU_tac=4
+NGPU_tac=1
 NGPU_wav=4
 # Default hyperparameters
 hparams = tf.contrib.training.HParams(
@@ -94,8 +94,7 @@ hparams = tf.contrib.training.HParams(
 	signal_normalization = True, #Whether to normalize mel spectrograms to some predefined range (following below parameters)
 	allow_clipping_in_normalization = False, #Only relevant if mel_normalization = True
 	symmetric_mels = True, #Whether to scale the data to be symmetric around 0. (Also multiplies the output range by 2, faster and cleaner convergence)
-	max_abs_value = 4., #max absolute value of data. If symmetric, data will be [-max, max] else [0, max] (Must not be too big to avoid gradient explosion, 
-																										  #not too small for fast convergence)
+	max_abs_value = 4., #max absolute value of data. If symmetric, data will be [-max, max] else [0, max] (Must not be too big to avoid gradient explosion, #not too small for fast convergence)
 	normalize_for_wavenet = True, #whether to rescale to [0, 1] for wavenet. (better audio quality)
 	clip_for_wavenet = True, #whether to clip [-max, max] before training/synthesizing with wavenet (better audio quality)
 
