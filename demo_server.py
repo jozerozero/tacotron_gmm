@@ -6,6 +6,7 @@ from infolog import log
 from tacotron.synthesizer import Synthesizer
 from wsgiref import simple_server
 import argparse
+import re
 from pypinyin import pinyin, lazy_pinyin, Style
 
 
@@ -67,11 +68,17 @@ def p(input):
 		str += i[0] + " "
 	return str
 
+def replace_punc(text):
+	return text.translate(text.maketrans("，。？：；！“”、（）",",.?:;!\"\",()"))
+
+def remove_prosody(text):
+	return re.sub(r'#[0-9]','',text)
+
 parser = argparse.ArgumentParser()
 #parser.add_argument('--checkpoint', default='pretrained/', help='Path to model checkpoint')
-parser.add_argument('--checkpoint', default='logs-Tacotron/taco_pretrained/tacotron_model.ckpt-34000', help='Path to model checkpoint')
+parser.add_argument('--checkpoint', default='logs-Tacotron/taco_pretrained/tacotron_model.ckpt-79000', help='Path to model checkpoint')
 parser.add_argument('--hparams', default='',help='Hyperparameter overrides as a comma-separated list of name=value pairs')
-parser.add_argument('--port', default=80,help='Port of Http service')
+parser.add_argument('--port', default=1234,help='Port of Http service')
 parser.add_argument('--host', default="localhost",help='Host of Http service')
 parser.add_argument('--name', help='Name of logging directory if the two models were trained together.')
 args = parser.parse_args()
@@ -90,7 +97,7 @@ class Syn:
 		print('IN')
 		if not req.params.get('text'):
 			raise falcon.HTTPBadRequest()
-		res.body = p(req.params.get('text'))
+		res.body = p(remove_prosody(replace_punc(req.params.get('text'))))
 		print(res.body)
 		#synth.eval(res.data)
 		synth.synthesize([res.body],None,None,None,None)

@@ -190,6 +190,7 @@ class EncoderRNN:
 		self.zoneout = zoneout
 		self.scope = 'encoder_LSTM' if scope is None else scope
 
+                # For each cell, 256(hidden)+512(input) -> 256*4(all gates)
 		#Create forward LSTM Cell
 		self._fw_cell = ZoneoutLSTMCell(size, is_training,
 			zoneout_factor_cell=zoneout,

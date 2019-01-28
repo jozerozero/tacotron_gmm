@@ -13,6 +13,7 @@ from librosa import effects
 from tacotron.models import create_model
 from tacotron.utils import plot
 from tacotron.utils.text import text_to_sequence
+from tensorflow.python import import debug as tf_debug
 
 
 class Synthesizer:
@@ -132,7 +133,9 @@ class Synthesizer:
 			assert len(mels) == len(texts)
 
 		else:
+                    #self.session=tf_debug.LocalCLIDebugWrapperSession(self.session)
 			linear_wavs, linears, mels, alignments, stop_tokens = self.session.run([self.linear_wav_outputs, self.linear_outputs, self.mel_outputs, self.alignments, self.stop_token_prediction], feed_dict=feed_dict)
+                        #tf.summary.FileWriter('tflogs', graph=tf.get_default_graph())
 			#Linearize outputs (1D arrays)
 			linear_wavs = [linear_wav for gpu_linear_wav in linear_wavs for linear_wav in gpu_linear_wav]
 			linears = [linear for gpu_linear in linears for linear in gpu_linear]

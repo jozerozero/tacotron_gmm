@@ -12,6 +12,11 @@ Unidecode==0.4.20
 #sudo apt-get install python3-pyaudio
 #sudo apt-get install portaudio19-dev
 #export PYTHONIOENCODING=utf-8
+#sudo apt-get install locales
+#sudo locale-gen en_US.UTF-8 
+#sudo update-locale
+#logout login
+
 pyaudio==0.2.11
 sounddevice==0.3.10
 tensorflow-gpu
