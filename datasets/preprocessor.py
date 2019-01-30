@@ -64,6 +64,24 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
 		for input_dir in input_dirs:
 			prosody_labeling=os.path.join(input_dir,'ProsodyLabeling','000001-010000.txt')
 			cnt=0
+			with open(prosody_labeling,encoding='utf-8') as fpl:
+				for line in fpl:
+					cnt+=1
+					if cnt%2==0:
+						continue
+					fields=line.split('\t')
+					wav_num=fields[0]
+					text=p(fields[1])
+					basename=wav_num+'.wav'
+					wav_path=os.path.join(input_dir,'Wave',basename)
+					futures.append(executor.submit(partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+
+		return [future.result() for future in tqdm(futures) if future.result() is not None]
+
+	if True:#TODO: add condition
+		for input_dir in input_dirs:
+			prosody_labeling=os.path.join(input_dir,'ProsodyLabeling','000001-010000.txt')
+			cnt=0
 			with open(prosody_labeling,encoding='gb18030') as fpl:
 				for line in fpl:
 					cnt+=1

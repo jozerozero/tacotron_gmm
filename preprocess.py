@@ -37,9 +37,9 @@ def norm_data(args):
 
 	print('Selecting data folders..')
 	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'THCHS-30', 'BZNSYP']
-	if args.dataset not in supported_datasets:
-		raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
-			args.dataset, supported_datasets))
+	#if args.dataset not in supported_datasets:
+	#	raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
+	#		args.dataset, supported_datasets))
 
 	if args.dataset.startswith('LJSpeech'):
 		return [os.path.join(args.base_dir, args.dataset)]
@@ -79,6 +79,8 @@ def norm_data(args):
 					supported_books))
 
 			return [os.path.join(path, args.book)]
+
+	return [os.path.join(args.base_dir, args.dataset)]
 
 
 def run_preprocess(args, hparams):

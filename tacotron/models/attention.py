@@ -90,7 +90,7 @@ def _smoothing_normalization(e):
 			attendance to multiple memory time steps.
 	"""
 	#return tf.nn.sigmoid(e) / tf.reduce_sum(tf.nn.sigmoid(e), axis=-1, keepdims=True)
-        return tf.exp(tf.math.scalar_mul(2,e)) / tf.reduce_sum(tf.exp(tf.math.scalar_mul(2,e)), axis=-1, keepdims=True)
+	return tf.exp(tf.math.scalar_mul(2,e)) / tf.reduce_sum(tf.exp(tf.math.scalar_mul(2,e)), axis=-1, keepdims=True)
 
 
 class LocationSensitiveAttention(BahdanauAttention):
@@ -147,7 +147,7 @@ class LocationSensitiveAttention(BahdanauAttention):
 		"""
 		#Create normalization function
 		#Setting it to None defaults in using softmax
-                smoothing=True
+		#smoothing=True
 		normalization_function = _smoothing_normalization if (smoothing == True) else None
 		memory_length = memory_sequence_length if (mask_encoder==True) else None
 		super(LocationSensitiveAttention, self).__init__(

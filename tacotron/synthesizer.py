@@ -13,7 +13,7 @@ from librosa import effects
 from tacotron.models import create_model
 from tacotron.utils import plot
 from tacotron.utils.text import text_to_sequence
-from tensorflow.python import import debug as tf_debug
+from tensorflow.python import debug as tf_debug
 
 
 class Synthesizer:
