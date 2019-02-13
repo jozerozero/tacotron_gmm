@@ -8,6 +8,6 @@ through Unidecode. For other data, you can modify _characters. See TRAINING_DATA
 _pad        = '_'
 _eos        = '~'
 _characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? '
-
+_english2latin='ƖƗƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǂǄǅǆǇǈǉǊǋǌǍ'
 # Export all symbols:
-symbols = [_pad, _eos] + list(_characters)
+symbols = [_pad, _eos] + list(_characters) + list(_english2latin)

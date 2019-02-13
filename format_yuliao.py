@@ -4,6 +4,8 @@ import re
 from tacotron.utils.cn_convert import cn_convert
 with open('yuliao1.txt', 'r', encoding='utf-8') as f:
     for line in f:
+        if line[0]=='1':
+            continue
         line=line[:6]+'\t'+line[7:]
         #fields=re.compile('[ \t]').split(line)
         fields=line.split('\t')
