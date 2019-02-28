@@ -86,7 +86,7 @@ def replace_english2latin(text):
     return text.translate(text.maketrans(english_chars,_english2latin))
 
 def replace_punc(text):
-    return text.translate(text.maketrans("，。？：；！“”、（）《》",",.?:;!\"\",()\"\""))
+    return text.translate(text.maketrans("，。？：；！“”、（）《》—…",",.?:;!\"\",()\"\",."))
 
 def process_num(match):
     s=match.group()
