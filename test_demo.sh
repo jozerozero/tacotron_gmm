@@ -1,5 +1,5 @@
 #!/bin/bash
-uri=$(python -c "import urllib, sys; print urllib.quote(sys.argv[1])" $1)
+uri=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" $1)
 echo $uri
 wget -O/dev/null http://localhost:1234/synthesize?text=$uri
 echo wget finished

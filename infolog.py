@@ -13,7 +13,7 @@ _slack_url = None
 def init(filename, run_name, slack_url=None):
 	global _file, _run_name, _slack_url
 	_close_logfile()
-	_file = open(filename, 'a')
+	_file = open(filename, 'a', encoding='utf-8')
 	_file.write('\n-----------------------------------------------------------------\n')
 	_file.write('Starting new {} training run\n'.format(run_name))
 	_file.write('-----------------------------------------------------------------\n')
@@ -47,3 +47,6 @@ def _send_slack(msg):
 
 
 atexit.register(_close_logfile)
+
+if __name__ == '__main__':
+	print('你好')

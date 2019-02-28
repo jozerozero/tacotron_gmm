@@ -8,6 +8,7 @@ from wsgiref import simple_server
 import argparse
 import re
 from pypinyin import pinyin, lazy_pinyin, Style
+from tacotron.utils.cn_convert import cn_convert
 
 
 html_body = '''<html><title>Tcotron-2 Demo</title><meta charset='utf-8'>
@@ -76,7 +77,7 @@ def remove_prosody(text):
 
 parser = argparse.ArgumentParser()
 #parser.add_argument('--checkpoint', default='pretrained/', help='Path to model checkpoint')
-parser.add_argument('--checkpoint', default='logs-Tacotron/taco_pretrained/tacotron_model.ckpt-79000', help='Path to model checkpoint')
+parser.add_argument('--checkpoint', default='logs-Tacotron/taco_pretrained/tacotron_model.ckpt-31993', help='Path to model checkpoint')
 parser.add_argument('--hparams', default='',help='Hyperparameter overrides as a comma-separated list of name=value pairs')
 parser.add_argument('--port', default=1234,help='Port of Http service')
 parser.add_argument('--host', default="localhost",help='Host of Http service')
@@ -97,8 +98,9 @@ class Syn:
 		print('IN')
 		if not req.params.get('text'):
 			raise falcon.HTTPBadRequest()
-		res.body = p(remove_prosody(replace_punc(req.params.get('text'))))
-		print(res.body)
+		#res.body = p(remove_prosody(replace_punc(req.params.get('text'))))
+		res.body = p(cn_convert(req.params.get('text')))
+		#print(res.body)
 		#synth.eval(res.data)
 		synth.synthesize([res.body],None,None,None,None)
 		res.content_type = "text/plain"		
