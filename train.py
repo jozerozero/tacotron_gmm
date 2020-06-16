@@ -94,11 +94,11 @@ def main():
 	parser.add_argument('--base_dir', default='')
 	parser.add_argument('--hparams', default='',
 		help='Hyperparameter overrides as a comma-separated list of name=value pairs')
-	parser.add_argument('--tacotron_input', default='training_data/train.txt')
+	parser.add_argument('--tacotron_input', default='/home/lizijian/data0/tacotron_multi_lingual/tacotron/training_data/train.txt')
 	parser.add_argument('--wavenet_input', default='tacotron_output/gta/map.txt')
 	parser.add_argument('--name', help='Name of logging directory.')
 	parser.add_argument('--model', default='Tacotron')
-	parser.add_argument('--input_dir', default='training_data', help='folder to contain inputs sentences/targets')
+	parser.add_argument('--input_dir', default='/home/lizijian/data0/tacotron_multi_lingual/tacotron/training_data', help='folder to contain inputs sentences/targets')
 	parser.add_argument('--output_dir', default='output', help='folder to contain synthesized mel spectrograms')
 	parser.add_argument('--mode', default='synthesis', help='mode for synthesis of tacotron after training')
 	parser.add_argument('--GTA', default='True', help='Ground truth aligned synthesis, defaults to True, only considered in Tacotron synthesis mode')
@@ -107,11 +107,11 @@ def main():
 		help='Steps between running summary ops')
 	parser.add_argument('--embedding_interval', type=int, default=10000,
 		help='Steps between updating embeddings projection visualization')
-	parser.add_argument('--checkpoint_interval', type=int, default=1000,
+	parser.add_argument('--checkpoint_interval', type=int, default=2000,
 		help='Steps between writing checkpoints')
 	parser.add_argument('--eval_interval', type=int, default=1000,
 		help='Steps between eval on test data')
-	parser.add_argument('--tacotron_train_steps', type=int, default=150000, help='total number of tacotron training steps')
+	parser.add_argument('--tacotron_train_steps', type=int, default=1000000, help='total number of tacotron training steps')
 	parser.add_argument('--wavenet_train_steps', type=int, default=750000, help='total number of wavenet training steps')
 	parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')
 	parser.add_argument('--slack_url', default=None, help='slack webhook notification destination link')

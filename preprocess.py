@@ -17,6 +17,7 @@ def preprocess(args, input_folders, out_dir, hparams):
 	metadata = preprocessor.build_from_path(hparams, input_folders, mel_dir, linear_dir, wav_dir, args.n_jobs, tqdm=tqdm)
 	write_metadata(metadata, out_dir)
 
+
 def write_metadata(metadata, out_dir):
 	with open(os.path.join(out_dir, 'train.txt'), 'w', encoding='utf-8') as f:
 		for m in metadata:
@@ -36,7 +37,7 @@ def norm_data(args):
 	merge_books = (args.merge_books=='True')
 
 	print('Selecting data folders..')
-	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'THCHS-30', 'BZNSYP']
+	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'THCHS-30', 'BZNSYP', 'Boya_Female']
 	#if args.dataset not in supported_datasets:
 	#	raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
 	#		args.dataset, supported_datasets))
@@ -49,6 +50,9 @@ def norm_data(args):
 
 	if args.dataset.startswith('BZNSYP'):
 		return [os.path.join(args.base_dir, 'BZNSYP')]
+
+	if args.dataset.startswith('Boya_Female'):
+		return [os.path.join(args.base_dir, 'Boya_Female')] 
 
 	if args.dataset == 'M-AILABS':
 		supported_languages = ['en_US', 'en_UK', 'fr_FR', 'it_IT', 'de_DE', 'es_ES', 'ru_RU',
@@ -105,7 +109,6 @@ def main():
 	parser.add_argument('--output', default='training_data')
 	parser.add_argument('--n_jobs', type=int, default=cpu_count())
 	args = parser.parse_args()
-
 	modified_hp = hparams.parse(args.hparams)
 
 	assert args.merge_books in ('False', 'True')

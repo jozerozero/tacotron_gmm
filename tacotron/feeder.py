@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from infolog import log
 from sklearn.model_selection import train_test_split
-from tacotron.utils.text import text_to_sequence
+from tacotron.utils.text import text_to_sequence, phoneme_str_to_seq
 
 _batches_per_group = 64
 
@@ -31,6 +31,7 @@ class Feeder:
 			#in case empty line in BNZSYP
 			f_arr=list(filter(lambda x:x.strip()!='',f))
 			self._metadata = [line.strip().split('|') for line in f_arr]
+
 			frame_shift_ms = hparams.hop_size / hparams.sample_rate
 			hours = sum([int(x[4]) for x in self._metadata]) * frame_shift_ms / (3600)
 			log('Loaded metadata for {} examples ({:.2f} hours)'.format(len(self._metadata), hours))
@@ -81,12 +82,15 @@ class Feeder:
 			tf.placeholder(tf.float32, shape=(None, None, hparams.num_freq), name='linear_targets'),
 			tf.placeholder(tf.int32, shape=(None, ), name='targets_lengths'),
 			tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name='split_infos'),
+			tf.placeholder(tf.int32, shape=(None, None), name="tone_input"),
+			tf.placeholder(tf.int32, shape=(None, ), name='language_id')
 			]
 
 			# Create queue for buffering data
-			queue = tf.FIFOQueue(8, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32], name='input_queue')
+			queue = tf.FIFOQueue(16, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32, tf.int32, tf.int32], name='input_queue')
 			self._enqueue_op = queue.enqueue(self._placeholders)
-			self.inputs, self.input_lengths, self.mel_targets, self.token_targets, self.linear_targets, self.targets_lengths, self.split_infos = queue.dequeue()
+			self.inputs, self.input_lengths, self.mel_targets, self.token_targets, self.linear_targets, \
+			self.targets_lengths, self.split_infos, self.tone_input, self.language_id = queue.dequeue()
 
 			self.inputs.set_shape(self._placeholders[0].shape)
 			self.input_lengths.set_shape(self._placeholders[1].shape)
@@ -95,12 +99,14 @@ class Feeder:
 			self.linear_targets.set_shape(self._placeholders[4].shape)
 			self.targets_lengths.set_shape(self._placeholders[5].shape)
 			self.split_infos.set_shape(self._placeholders[6].shape)
+			self.tone_input.set_shape(self._placeholders[7].shape)
+			self.language_id.set_shape(self._placeholders[8].shape)
 
 			# Create eval queue for buffering eval data
-			eval_queue = tf.FIFOQueue(1, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32], name='eval_queue')
+			eval_queue = tf.FIFOQueue(1, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32, tf.int32, tf.int32], name='eval_queue')
 			self._eval_enqueue_op = eval_queue.enqueue(self._placeholders)
 			self.eval_inputs, self.eval_input_lengths, self.eval_mel_targets, self.eval_token_targets, \
-				self.eval_linear_targets, self.eval_targets_lengths, self.eval_split_infos = eval_queue.dequeue()
+				self.eval_linear_targets, self.eval_targets_lengths, self.eval_split_infos, self.eval_tone_input, self.eval_language_id = eval_queue.dequeue()
 
 			self.eval_inputs.set_shape(self._placeholders[0].shape)
 			self.eval_input_lengths.set_shape(self._placeholders[1].shape)
@@ -109,6 +115,8 @@ class Feeder:
 			self.eval_linear_targets.set_shape(self._placeholders[4].shape)
 			self.eval_targets_lengths.set_shape(self._placeholders[5].shape)
 			self.eval_split_infos.set_shape(self._placeholders[6].shape)
+			self.eval_tone_input.set_shape(self._placeholders[7].shape)
+			self.eval_language_id.set_shape(self._placeholders[8].shape)
 
 	def start_threads(self, session):
 		self._session = session
@@ -126,12 +134,15 @@ class Feeder:
 
 		text = meta[5]
 
-		input_data = np.asarray(text_to_sequence(text, self._cleaner_names), dtype=np.int32)
+		input_data = np.asarray(phoneme_str_to_seq(text), dtype=np.int32)
 		mel_target = np.load(os.path.join(self._mel_dir, meta[1]))
 		#Create parallel sequences containing zeros to represent a non finished sequence
 		token_target = np.asarray([0.] * (len(mel_target) - 1))
 		linear_target = np.load(os.path.join(self._linear_dir, meta[2]))
-		return (input_data, mel_target, token_target, linear_target, len(mel_target))
+
+		tone_data = np.asarray([t for t in meta[6].split(" ")], dtype=np.int32)
+		language_id = meta[8]
+		return input_data, mel_target, token_target, linear_target, len(mel_target), tone_data, language_id
 
 	def make_test_batches(self):
 		start = time.time()
@@ -144,7 +155,7 @@ class Feeder:
 		examples = [self._get_test_groups() for i in range(len(self._test_meta))]
 
 		# Bucket examples based on similar output sequence length for efficiency
-		examples.sort(key=lambda x: x[-1])
+		examples.sort(key=lambda x: x[-3])
 		batches = [examples[i: i+n] for i in range(0, len(examples), n)]
 		np.random.shuffle(batches)
 
@@ -161,7 +172,7 @@ class Feeder:
 			examples = [self._get_next_example() for i in range(n * _batches_per_group)]
 
 			# Bucket examples based on similar output sequence length for efficiency
-			examples.sort(key=lambda x: x[-1])
+			examples.sort(key=lambda x: x[-3])
 			batches = [examples[i: i+n] for i in range(0, len(examples), n)]
 			np.random.shuffle(batches)
 
@@ -190,12 +201,25 @@ class Feeder:
 
 		text = meta[5]
 
-		input_data = np.asarray(text_to_sequence(text, self._cleaner_names), dtype=np.int32)
+		input_data = np.asarray(phoneme_str_to_seq(text), dtype=np.int32)
 		mel_target = np.load(os.path.join(self._mel_dir, meta[1]))
 		#Create parallel sequences containing zeros to represent a non finished sequence
 		token_target = np.asarray([0.] * (len(mel_target) - 1))
 		linear_target = np.load(os.path.join(self._linear_dir, meta[2]))
-		return (input_data, mel_target, token_target, linear_target, len(mel_target))
+		language_id = meta[8]
+		tone_data_list = [t for t in meta[6].split(" ")]
+		if language_id == 0:
+			tone_data_list.append("8")
+		else:
+			tone_data_list.append("3")
+
+		tone_data = np.asarray(tone_data_list, dtype=np.int32)
+		# print("tone_data:", len(tone_data))
+		# print("input data", len(input_data))
+		# exit()
+
+
+		return (input_data, mel_target, token_target, linear_target, len(mel_target), tone_data, language_id)
 
 	def _prepare_batch(self, batches, outputs_per_step):
 		assert 0 == len(batches) % self._hparams.tacotron_num_gpus
@@ -208,14 +232,27 @@ class Feeder:
 		linear_targets = None
 		targets_lengths = None
 		split_infos = []
+		tone_input = None
+		language_id = None
 
-		targets_lengths = np.asarray([x[-1] for x in batches], dtype=np.int32) #Used to mask loss
+		targets_lengths = np.asarray([x[-3] for x in batches], dtype=np.int32) #Used to mask loss
+		language_id = np.asarray([x[-1] for x in batches], dtype=np.int32)
 		input_lengths = np.asarray([len(x[0]) for x in batches], dtype=np.int32)
 
 		for i in range(self._hparams.tacotron_num_gpus):
 			batch = batches[size_per_device*i:size_per_device*(i+1)]
+			# print(batch[0][0])
+			# print(batch[0][0].shape)
+			# print(batch[0][5])
+			# print(batch[0][5].shape)
+			# exit()
+
 			input_cur_device, input_max_len = self._prepare_inputs([x[0] for x in batch])
 			inputs = np.concatenate((inputs, input_cur_device), axis=1) if inputs is not None else input_cur_device
+
+			tone_input_cur_device, tone_max_len = self._prepare_inputs([x[5] for x in batch])
+			tone_input = np.concatenate((tone_input, tone_input_cur_device), axis=1) if tone_input is not None else tone_input_cur_device
+
 			mel_target_cur_device, mel_target_max_len = self._prepare_targets([x[1] for x in batch], outputs_per_step)
 			mel_targets = np.concatenate(( mel_targets, mel_target_cur_device), axis=1) if mel_targets is not None else mel_target_cur_device
 
@@ -227,7 +264,8 @@ class Feeder:
 			split_infos.append([input_max_len, mel_target_max_len, token_target_max_len, linear_target_max_len])
 
 		split_infos = np.asarray(split_infos, dtype=np.int32)
-		return (inputs, input_lengths, mel_targets, token_targets, linear_targets, targets_lengths, split_infos)
+		return (inputs, input_lengths, mel_targets, token_targets, linear_targets,
+				targets_lengths, split_infos, tone_input, language_id)
 
 	def _prepare_inputs(self, inputs):
 		max_len = max([len(x) for x in inputs])

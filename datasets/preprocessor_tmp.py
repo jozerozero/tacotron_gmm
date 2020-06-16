@@ -72,12 +72,9 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
             cnt = 0
             with open(prosody_labeling, encoding='utf-8') as fpl:
                 for line in fpl:
-                    line = line.strip()
-                    if line == '':
+                    cnt += 1
+                    if cnt % 2 == 0:
                         continue
-                    #cnt += 1
-                    #if cnt % 2 == 0:
-                    #    continue
                     fields = line.split('\t')
                     wav_num = fields[0]
                     text = p(fields[1])
@@ -85,80 +82,62 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
                     wav_path = os.path.join(input_dir, 'Wave', basename)
                     futures.append(executor.submit(
                         partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
-   
+
+        return [future.result() for future in tqdm(futures) if future.result() is not None]
+
+    if True:  # TODO: add condition
+        for input_dir in input_dirs:
+            prosody_labeling = os.path.join(input_dir, 'ProsodyLabeling', '000001-010000.txt')
+            cnt = 0
+            with open(prosody_labeling, encoding='gb18030') as fpl:
+                for line in fpl:
+                    cnt += 1
+                    if cnt % 2 == 0:
+                        continue
+                    fields = line.split('	')
+                    wav_num = fields[0]
+                    text = p(remove_prosody(replace_punc(fields[1])))
+                    basename = wav_num + '.wav'
+                    wav_path = os.path.join(input_dir, 'Wave', basename)
+                    futures.append(executor.submit(
+                        partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+
         return [future.result() for future in tqdm(futures) if future.result() is not None]
 
     for input_dir in input_dirs:
-        prosody_labeling = os.path.join(input_dir, '', 'meta.txt')
-        cnt = 0
-        with open(prosody_labeling, "r") as fpl:
-            for line in fpl:
-                cnt +=1
-                if cnt % 2 == 0:
-                    continue
-                fields = line.split("\t")
-                wav_name = fields[0]
-                text = fields[1]
-                basename = wav_name + ".wav"
-                wav_path = os.path.join(input_dir, "Wave", basename)
-                print(wav_path)
+        trn_files = glob.glob(os.path.join(input_dir, "data", 'A*.trn'))
+        for trn in trn_files:
+            with open(trn, encoding='utf-8') as f:
+                basename = trn[:-4]
+                text = None
+                if basename.endswith('.wav'):
+                    # THCHS30
+                    zhText = f.readline()
+                    pinyinText = f.readline()
+                    text = segment(zhText, pinyinText)
+                    wav_file = basename
+                else:
+                    wav_file = basename + '.wav'
+                wav_path = wav_file
+                basename = basename.split('/')[-1]
+                text = text if text != None else f.readline().strip()
+
+                mel_dir = replace(mel_dir)
+                linear_dir = replace(linear_dir)
+                wav_dir = replace(wav_dir)
+                wav_path = replace(wav_path)
+                basename = replace(basename)
+
                 futures.append(executor.submit(
                     partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
-
-
-    # if True:  # TODO: add condition
-    #     for input_dir in input_dirs:
-    #         prosody_labeling = os.path.join(input_dir, 'ProsodyLabeling', '000001-010000.txt')
-    #         cnt = 0
-    #         with open(prosody_labeling, encoding='gb18030') as fpl:
-    #             for line in fpl:
-    #                 cnt += 1
-    #                 if cnt % 2 == 0:
-    #                     continue
-    #                 fields = line.split('	')
-    #                 wav_num = fields[0]
-    #                 text = p(remove_prosody(replace_punc(fields[1])))
-    #                 basename = wav_num + '.wavs'
-    #                 wav_path = os.path.join(input_dir, 'Wave', basename)
-    #                 futures.append(executor.submit(
-    #                     partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
-    #
-    #     return [future.result() for future in tqdm(futures) if future.result() is not None]
-    #
-    # for input_dir in input_dirs:
-    #     trn_files = glob.glob(os.path.join(input_dir, "data", 'A*.trn'))
-    #     for trn in trn_files:
-    #         with open(trn, encoding='utf-8') as f:
-    #             basename = trn[:-4]
-    #             text = None
-    #             if basename.endswith('.wavs'):
-    #                 # THCHS30
-    #                 zhText = f.readline()
-    #                 pinyinText = f.readline()
-    #                 text = segment(zhText, pinyinText)
-    #                 wav_file = basename
-    #             else:
-    #                 wav_file = basename + '.wavs'
-    #             wav_path = wav_file
-    #             basename = basename.split('/')[-1]
-    #             text = text if text != None else f.readline().strip()
-    #
-    #             mel_dir = replace(mel_dir)
-    #             linear_dir = replace(linear_dir)
-    #             wav_dir = replace(wav_dir)
-    #             wav_path = replace(wav_path)
-    #             basename = replace(basename)
-    #
-    #             futures.append(executor.submit(
-    #                 partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
-    #             index += 12
+                index += 1
 
     return [future.result() for future in tqdm(futures) if future.result() is not None]
 
 
 def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hparams):
     """
-	Preprocesses a single utterance wavs/text pair
+	Preprocesses a single utterance wav/text pair
 
 	this writes the mel scale spectogram to disk and return a tuple to write
 	to the train.txt file
@@ -166,7 +145,7 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
 	Args:
 		- mel_dir: the directory to write the mel spectograms into
 		- linear_dir: the directory to write the linear spectrograms into
-		- wav_dir: the directory to write the preprocessed wavs into
+		- wav_dir: the directory to write the preprocessed wav into
 		- index: the numeric index to use in the spectogram filename
 		- wav_path: path to the audio file containing the speech input
 		- text: text spoken in the input audio file
@@ -178,12 +157,12 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
     try:
         # Load the audio as numpy array
         wav = audio.load_wav(wav_path, sr=hparams.sample_rate)
-    except FileNotFoundError:  # catch missing wavs exception
-        print('file {} present in csv metadata is not present in wavs folder. skipping!'.format(
+    except FileNotFoundError:  # catch missing wav exception
+        print('file {} present in csv metadata is not present in wav folder. skipping!'.format(
             wav_path))
         return None
 
-    # rescale wavs
+    # rescale wav
     if hparams.rescale:
         wav = wav / np.abs(wav).max() * hparams.rescaling_max
 
@@ -216,14 +195,14 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
         constant_values = 0.
         out_dtype = np.float32
 
-    # Compute the mel scale spectrogram from the wavs
+    # Compute the mel scale spectrogram from the wav
     mel_spectrogram = audio.melspectrogram(wav, hparams).astype(np.float32)
     mel_frames = mel_spectrogram.shape[1]
 
     if mel_frames > hparams.max_mel_frames and hparams.clip_mels_length:
         return None
 
-    # Compute the linear scale spectrogram from the wavs
+    # Compute the linear scale spectrogram from the wav
     linear_spectrogram = audio.linearspectrogram(wav, hparams).astype(np.float32)
     linear_frames = linear_spectrogram.shape[1]
 
