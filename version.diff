@@ -1,0 +1,3055 @@
+diff --git a/check_data.py b/check_data.py
+deleted file mode 100644
+index b18a553..0000000
+--- a/check_data.py
++++ /dev/null
+@@ -1,44 +0,0 @@
+-path = "training_biaobei_wavernn_24k/cmu_long.txt"
+-
+-word_list = []
+-
+-
+-_pad = '_'
+-_eos = '~'
+-_pinyinchars = 'abcdefghijklmnopqrstuvwxyz1234567890'
+-#_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? '
+-_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? #$%^'
+-_english2latin = 'ƖƗƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǂǄǅǆǇǈǉǊǋǌǍ'
+-# Export all symbols:
+-symbols = [_pad, _eos] + list(_characters) + list(_english2latin)
+-CMUPhonemes=['J', 'Q', 'X', 'AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'B',  'CH', 'D',  'DH', 'EH', 'ER', 'EY', 'F',  'G',  'HH', 'IH', 'IY', 'JH', 'K',  'L',  'M',  'N',  'NG', 'OW', 'OY', 'P',  'R',  'S',  'SH', 'T',  'TH', 'UH', 'UW', 'V',  'W',  'Y',  'Z',  'ZH', '0', '1', '2', '3']
+-puncs = '!\'(),-.:;? '
+-CMUPhonemes += list(puncs)
+-CMUPhonemes = [_pad, _eos] + CMUPhonemes
+-CMUPhonemes += '..'
+-CMUPhonemes += '"'
+-CMUPhonemes += ''
+-
+-en_stress = [0, 1, 2, 3]
+-cn_tone = [4, 5, 6, 7, 8]
+-tone = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+-
+-
+-for line in open(path).readlines():
+-    line = line.strip().split("|")[5].split(" ")
+-    for word in line:
+-        word_list.append(word)
+-
+-word_set = set(word_list)
+-
+-print(word_set)
+-print(len(word_set))
+-
+-replace_set = []
+-
+-for word in word_set:
+-    if word not in CMUPhonemes:
+-        replace_set.append(word)
+-        print(len(word))
+-        print("test:"+word+"|")
+-        pass
+\ No newline at end of file
+diff --git a/check_length.py b/check_length.py
+deleted file mode 100644
+index a39b3ca..0000000
+--- a/check_length.py
++++ /dev/null
+@@ -1,19 +0,0 @@
+-path = "/home/lizijian/data0/tacotron_multi_lingual/tacotron/training_data/train.txt"
+-
+-count = 0
+-for line in open(path):
+-    line = line.strip().split("|")
+-    phone_list = line[5].split(" ")
+-    tone_list = line[6].split(" ")
+-    # print(len(phone_list))
+-    # print(len(tone_list))
+-    if len(phone_list) != len(tone_list):
+-        count += 1
+-        print(phone_list)
+-        print(tone_list)
+-        print(len(phone_list))
+-        print(len(tone_list))
+-        # exit()
+-
+-print(count)
+-print("end")
+\ No newline at end of file
+diff --git a/datasets/preprocessor.py b/datasets/preprocessor.py
+index 22cc70d..9d6372a 100644
+--- a/datasets/preprocessor.py
++++ b/datasets/preprocessor.py
+@@ -1,17 +1,12 @@
+-import glob
+-import os
++import glob, os
+ from concurrent.futures import ProcessPoolExecutor
+ from functools import partial
+-import string
+ 
+ import numpy as np
+ from datasets import audio
+-# from wavenet_vocoder.util import is_mulaw, is_mulaw_quantize, mulaw, mulaw_quantize
++from wavenet_vocoder.util import is_mulaw, is_mulaw_quantize, mulaw, mulaw_quantize
+ import re
+ from pypinyin import pinyin, Style
+-from tacotron.utils.cn_convert import cn_convert
+-from tacotron.utils.cleaners import english_cleaners
+-
+ 
+ 
+ def p(input):
+@@ -20,36 +15,20 @@ def p(input):
+     for i in arr:
+         str += i[0] + " "
+     return str
+-<<<<<<< HEAD
+ 
+-=======
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+ # for windows
+-
+-
+ def replace(str):
+     return str.replace('\\', '/')
+-<<<<<<< HEAD
+ 
+ 
+ # punctuate
+-=======
+-
+-# punctuate
+-
+-
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ def segment(zhText, pinyinText):
+     arr = pinyinText.split(" ")
+     result = " "
+     index = 0
+     for j in zhText:
+-<<<<<<< HEAD
+         if (j != ' ' and index < len(arr)):
+-=======
+-        if(j != ' ' and index < len(arr)):
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+             result += arr[index] + " "
+             index += 1
+         else:
+@@ -58,17 +37,12 @@ def segment(zhText, pinyinText):
+ 
+ 
+ def replace_punc(text):
+-<<<<<<< HEAD
+     return text.translate(text.maketrans("，。？：；！“”、（）", ",.?:;!\"\",()"))
+-=======
+-    return text.translate(text.maketrans("，。？：；！“”、（）", ",..,..\"\",()"))
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+ 
+ def remove_prosody(text):
+     return re.sub(r'#[0-9]', '', text)
+ 
+-<<<<<<< HEAD
+ 
+ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12, tqdm=lambda x: x):
+     """
+@@ -86,97 +60,12 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
+ 	Returns:
+ 		- A list of tuple describing the train examples. this should be written to train.txt
+ 	"""
+-=======
+-def contains_english(text):
+-    charset=string.ascii_letters
+-    return any((x in charset for x in text))
+-
+-def folder_level_build_from_path(hparams, input_dirs, out_base_dir, n_jobs=12, tqdm=lambda x: x, mode='en'):
+-    """
+-    Preprocesses the speech dataset from a gven input path to given output directories
+-
+-    Args:
+-            - hparams: hyper parameters
+-            - input_dir: input directory that contains the files to prerocess
+-            - n_jobs: Optional, number of worker process to parallelize across
+-            - tqdm: Optional, provides a nice progress bar
+-
+-    Returns:
+-            - A list of tuple describing the train examples. this should be written to train.txt
+-    """
+-
+-    # We use ProcessPoolExecutor to parallelize across processes, this is just for
+-    # optimization purposes and it can be omited
+-    executor = ProcessPoolExecutor(max_workers=n_jobs)
+-    futures_tuples=[]
+-    #mode='en' # 'cn' or 'en'
+-    #speakers = ['p262', 'p272', 'p229', 'p232', 'p292', 'p293', 'p360', 'p361', 'p248', 'p251']
+-    #input_dirs=[cur_dir for cur_dir in input_dirs if cur_dir[-4:] in speakers]
+-    for input_dir in input_dirs:
+-        futures = []
+-        prosody_labeling = os.path.join(
+-            input_dir, 'ProsodyLabeling', '000001-010000.txt')
+-        if not os.path.exists(prosody_labeling):
+-            print("%s not found, this skip it" % prosody_labeling)
+-            continue
+-        out_dir = os.path.join(out_base_dir, os.path.basename(input_dir))
+-        mel_dir = os.path.join(out_dir, 'mels')
+-        wav_dir = os.path.join(out_dir, 'audio')
+-        linear_dir = os.path.join(out_dir, 'linear')
+-        os.makedirs(mel_dir, exist_ok=True)
+-        os.makedirs(wav_dir, exist_ok=True)
+-        os.makedirs(linear_dir, exist_ok=True)
+-        # index = 0
+-        with open(prosody_labeling, encoding='utf-8') as fpl:
+-            for line in fpl:
+-                # index += 1
+-                # if index == 2:
+-                #     break
+-                line=line.strip()
+-                if line=='':
+-                    continue
+-                fields = line.split('|')
+-                wav_num = fields[0]
+-                if mode=='en':
+-                    text = fields[1].lower()
+-                    text = english_cleaners(text)
+-                elif mode=='cn':
+-                    #if contains_english(fields[1]):
+-                    #    continue
+-                    #TODO: remove the #1234
+-                    #text = p(cn_convert(remove_prosody(fields[1])))
+-                    text = p(cn_convert(fields[1]))
+-                basename = wav_num+'.wav'
+-                wav_path = os.path.join(input_dir, 'Wave', basename)
+-                futures.append(executor.submit(partial(
+-                    _process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+-        futures_tuples.append(([future.result() for future in tqdm(futures) if future.result() is not None], out_dir))
+-    return futures_tuples
+-
+-def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12, tqdm=lambda x: x):
+-    """
+-    Preprocesses the speech dataset from a gven input path to given output directories
+-
+-    Args:
+-            - hparams: hyper parameters
+-            - input_dir: input directory that contains the files to prerocess
+-            - mel_dir: output directory of the preprocessed speech mel-spectrogram dataset
+-            - linear_dir: output directory of the preprocessed speech linear-spectrogram dataset
+-            - wav_dir: output directory of the preprocessed speech audio dataset
+-            - n_jobs: Optional, number of worker process to parallelize across
+-            - tqdm: Optional, provides a nice progress bar
+-
+-    Returns:
+-            - A list of tuple describing the train examples. this should be written to train.txt
+-    """
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+     # We use ProcessPoolExecutor to parallelize across processes, this is just for
+     # optimization purposes and it can be omited
+     executor = ProcessPoolExecutor(max_workers=n_jobs)
+     futures = []
+     index = 1
+-<<<<<<< HEAD
+     if True:  # TODO: add condition
+         for input_dir in input_dirs:
+             prosody_labeling = os.path.join(input_dir, 'ProsodyLabeling', '000001-010000.txt')
+@@ -264,99 +153,11 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
+     #                 partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+     #             index += 12
+ 
+-=======
+-    mode='en' # 'cn' or 'en'
+-    print("=================CNT====================")
+-    if mode == 'en':  # TODO: add condition
+-        for input_dir in input_dirs:
+-            print("=================cnt====================")
+-            prosody_labeling = os.path.join(
+-                input_dir, 'ProsodyLabeling', '000001-010000.txt')
+-            cnt = 0
+-            with open(prosody_labeling, encoding='utf-8') as fpl:
+-                for line in fpl:
+-                    fields = line.split('\t')
+-                    wav_num = fields[0]
+-                    text = fields[1].lower()
+-                    basename = wav_num+'.wav'
+-                    wav_path = os.path.join(input_dir, 'Wave', basename)
+-                    futures.append(executor.submit(partial(
+-                        _process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+-        return [future.result() for future in tqdm(futures) if future.result() is not None]
+-
+-    elif mode == 'cn':  # TODO: add condition
+-        for input_dir in input_dirs:
+-            prosody_labeling = os.path.join(
+-                input_dir, 'ProsodyLabeling', '000001-010000.txt')
+-            cnt = 0
+-            with open(prosody_labeling, encoding='utf-8') as fpl:
+-                for line in fpl:
+-                    cnt += 1
+-                    if cnt % 2 == 0:
+-                        continue
+-                    fields = line.split('\t')
+-                    wav_num = fields[0]
+-                    text = p(cn_convert(fields[1]))
+-                    basename = wav_num+'.wav'
+-                    wav_path = os.path.join(input_dir, 'Wave', basename)
+-                    futures.append(executor.submit(partial(
+-                        _process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+-        return [future.result() for future in tqdm(futures) if future.result() is not None]
+-
+-    if True:  # TODO: add condition
+-        for input_dir in input_dirs:
+-            prosody_labeling = os.path.join(
+-                input_dir, 'ProsodyLabeling', '000001-010000.txt')
+-            cnt = 0
+-            with open(prosody_labeling, encoding='gb18030') as fpl:
+-                for line in fpl:
+-                    cnt += 1
+-                    if cnt % 2 == 0:
+-                        continue
+-                    fields = line.split('	')
+-                    wav_num = fields[0]
+-                    text = p(remove_prosody(replace_punc(fields[1])))
+-                    basename = wav_num+'.wav'
+-                    wav_path = os.path.join(input_dir, 'Wave', basename)
+-                    futures.append(executor.submit(partial(
+-                        _process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+-
+-        return [future.result() for future in tqdm(futures) if future.result() is not None]
+-
+-    for input_dir in input_dirs:
+-        trn_files = glob.glob(os.path.join(input_dir, "data", 'A*.trn'))
+-        for trn in trn_files:
+-            with open(trn, encoding='utf-8') as f:
+-                basename = trn[:-4]
+-                text = None
+-                if basename.endswith('.wav'):
+-                    # THCHS30
+-                    zhText = f.readline()
+-                    pinyinText = f.readline()
+-                    text = segment(zhText, pinyinText)
+-                    wav_file = basename
+-                else:
+-                    wav_file = basename + '.wav'
+-                wav_path = wav_file
+-                basename = basename.split('/')[-1]
+-                text = text if text != None else f.readline().strip()
+-
+-                mel_dir = replace(mel_dir)
+-                linear_dir = replace(linear_dir)
+-                wav_dir = replace(wav_dir)
+-                wav_path = replace(wav_path)
+-                basename = replace(basename)
+-
+-                futures.append(executor.submit(partial(
+-                    _process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+-                index += 1
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+     return [future.result() for future in tqdm(futures) if future.result() is not None]
+ 
+ 
+ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hparams):
+     """
+-<<<<<<< HEAD
+ 	Preprocesses a single utterance wavs/text pair
+ 
+ 	this writes the mel scale spectogram to disk and return a tuple to write
+@@ -416,84 +217,10 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
+         out_dtype = np.float32
+ 
+     # Compute the mel scale spectrogram from the wavs
+-=======
+-    Preprocesses a single utterance wav/text pair
+-
+-    this writes the mel scale spectogram to disk and return a tuple to write
+-    to the train.txt file
+-
+-    Args:
+-            - mel_dir: the directory to write the mel spectograms into
+-            - linear_dir: the directory to write the linear spectrograms into
+-            - wav_dir: the directory to write the preprocessed wav into
+-            - index: the numeric index to use in the spectogram filename
+-            - wav_path: path to the audio file containing the speech input
+-            - text: text spoken in the input audio file
+-            - hparams: hyper parameters
+-
+-    Returns:
+-            - A tuple: (audio_filename, mel_filename, linear_filename, time_steps, mel_frames, linear_frames, text)
+-    """
+-    eliminated=0
+-    try:
+-        # Load the audio as numpy array
+-        wav = audio.load_wav(wav_path, sr=hparams.sample_rate)
+-    except FileNotFoundError:  # catch missing wav exception
+-        print('file {} present in csv metadata is not present in wav folder. skipping!'.format(
+-            wav_path))
+-        return None
+-
+-    try:
+-        # rescale wav
+-        if hparams.rescale:
+-            wav = wav / np.abs(wav).max() * hparams.rescaling_max
+-
+-        # M-AILABS extra silence specific
+-        if hparams.trim_silence:
+-            new_wav = audio.trim_silence(wav, hparams)
+-            eliminated+=(len(wav)-len(new_wav))/hparams.sample_rate
+-    except Exception as e:
+-        print('%s: %s' % (str(e), wav_path))
+-        return None
+-
+-
+-    # Mu-law quantize
+-#     if is_mulaw_quantize(hparams.input_type):
+-#         # [0, quantize_channels)
+-#         out = mulaw_quantize(wav, hparams.quantize_channels)
+-
+-#         # Trim silences
+-#         start, end = audio.start_and_end_indices(
+-#             out, hparams.silence_threshold)
+-#         wav = wav[start: end]
+-#         out = out[start: end]
+-
+-#         constant_values = mulaw_quantize(0, hparams.quantize_channels)
+-#         out_dtype = np.int16
+-
+-#     elif is_mulaw(hparams.input_type):
+-#         #[-1, 1]
+-#         out = mulaw(wav, hparams.quantize_channels)
+-#         constant_values = mulaw(0., hparams.quantize_channels)
+-#         out_dtype = np.float32
+-
+-#     else:
+-#         #[-1, 1]
+-#         out = wav
+-#         constant_values = 0.
+-#         out_dtype = np.float32
+-
+-    out = wav
+-    constant_values = 0.
+-    out_dtype = np.float32
+-
+-    # Compute the mel scale spectrogram from the wav
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+     mel_spectrogram = audio.melspectrogram(wav, hparams).astype(np.float32)
+     mel_frames = mel_spectrogram.shape[1]
+ 
+     if mel_frames > hparams.max_mel_frames and hparams.clip_mels_length:
+-<<<<<<< HEAD
+         return None
+ 
+     # Compute the linear scale spectrogram from the wavs
+@@ -502,20 +229,6 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
+ 
+     # sanity check
+     assert linear_frames == mel_frames
+-=======
+-        eliminated+=len(wav)/hparams.sample_rate
+-        print('mel_frame: ' + str(mel_frames) + ', max: '+str(hparams.max_mel_frames) + 'clip mels length: '+str(hparams.clip_mels_length))
+-        return [None, eliminated]
+-
+-    if hparams.predict_linear:
+-        # Compute the linear scale spectrogram from the wav
+-        linear_spectrogram = audio.linearspectrogram(
+-            wav, hparams).astype(np.float32)
+-        linear_frames = linear_spectrogram.shape[1]
+-
+-        # sanity check
+-        assert linear_frames == mel_frames
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+     if hparams.use_lws:
+         # Ensure time resolution adjustement between audio and mel-spectrogram
+@@ -523,19 +236,10 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
+         l, r = audio.pad_lr(wav, fft_size, audio.get_hop_size(hparams))
+ 
+         # Zero pad audio signal
+-<<<<<<< HEAD
+         out = np.pad(out, (l, r), mode='constant', constant_values=constant_values)
+     else:
+         # Ensure time resolution adjustement between audio and mel-spectrogram
+         pad = audio.librosa_pad_lr(wav, hparams.n_fft, audio.get_hop_size(hparams))
+-=======
+-        out = np.pad(out, (l, r), mode='constant',
+-                     constant_values=constant_values)
+-    else:
+-        # Ensure time resolution adjustement between audio and mel-spectrogram
+-        pad = audio.librosa_pad_lr(
+-            wav, hparams.n_fft, audio.get_hop_size(hparams))
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+         # Reflect pad audio signal (Just like it's done in Librosa to avoid frame inconsistency)
+         out = np.pad(out, pad, mode='reflect')
+@@ -564,17 +268,8 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
+ 
+     # Write the spectrogram and audio to disk
+     np.save(audio_filename_full, out.astype(out_dtype), allow_pickle=False)
+-<<<<<<< HEAD
+     np.save(mel_filename_full, mel_spectrogram.T, allow_pickle=False)
+     np.save(linear_filename_full, linear_spectrogram.T, allow_pickle=False)
+ 
+     # Return a tuple describing this training example
+     return (audio_filename, mel_filename, linear_filename, time_steps, mel_frames, text)
+-=======
+-    np.save(mel_filename_full, mel_spectrogram.T, allow_pickle=False) # (L,dim)
+-    if hparams.predict_linear:
+-        np.save(linear_filename_full, linear_spectrogram.T, allow_pickle=False)
+-
+-    # Return a tuple describing this training example
+-    return [audio_filename, mel_filename, linear_filename, time_steps, mel_frames, text, eliminated]
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+diff --git a/datasets/process_text.py b/datasets/process_text.py
+deleted file mode 100644
+index 151ed68..0000000
+--- a/datasets/process_text.py
++++ /dev/null
+@@ -1,52 +0,0 @@
+-import re
+-
+-
+-def process_en(text):
+-    word_phone_list = text.split(" ")
+-    phone_list = []
+-    stress_list = []
+-    print(text)
+-    for word_phone in word_phone_list:
+-        
+-        for phone in word_phone.split("$"):
+-            phone_stress = re.findall(r"\d+\.?\d*", phone)
+-            if len(phone_stress) == 0:
+-                stress = "3"
+-            else:
+-                stress = str(phone_stress[0])
+-        
+-            phone = phone.replace(str(stress), "")
+-            if len(phone) == 0:
+-                continue
+-            if "." in phone:
+-                continue
+-        
+-            phone_list.append(phone)
+-            stress_list.append(stress)
+-
+-        phone_list .append("$")
+-        stress_list.append("3")
+-
+-    return phone_list, stress_list
+-
+-
+-def get_pinyin2cmu_dict():
+-    pinyin2cmu_dict = dict()
+-    for line in open("datasets/pinyin2cmu.txt"):
+-        line = line.strip().split(" ", 1)
+-        pinyin2cmu_dict[line[0]] = line[1]
+-
+-    return pinyin2cmu_dict
+-
+-
+-# def process_cn(text):
+-#     phone_list = []
+-#     stress_list = []
+-#
+-#     for word in text.split(" "):
+-#         if "#" in word:
+-#             phone_list.append(word)
+-#
+-#
+-#
+-#     pass
+diff --git a/format_data.py b/format_data.py
+deleted file mode 100644
+index f7941f7..0000000
+--- a/format_data.py
++++ /dev/null
+@@ -1,62 +0,0 @@
+-word_list = []
+-
+-
+-_pad = '_'
+-_eos = '~'
+-_pinyinchars = 'abcdefghijklmnopqrstuvwxyz1234567890'
+-#_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? '
+-_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? #$%^'
+-_english2latin = 'ƖƗƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǂǄǅǆǇǈǉǊǋǌǍ'
+-# Export all symbols:
+-symbols = [_pad, _eos] + list(_characters) + list(_english2latin)
+-CMUPhonemes=['J', 'Q', 'X', 'AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'B',  'CH', 'D',  'DH', 'EH', 'ER', 'EY', 'F',  'G',  'HH', 'IH', 'IY', 'JH', 'K',  'L',  'M',  'N',  'NG', 'OW', 'OY', 'P',  'R',  'S',  'SH', 'T',  'TH', 'UH', 'UW', 'V',  'W',  'Y',  'Z',  'ZH', '0', '1', '2', '3']
+-puncs = '!\'(),-.:;? '
+-CMUPhonemes += list(puncs)
+-CMUPhonemes = [_pad, _eos] + CMUPhonemes
+-CMUPhonemes += '..'
+-CMUPhonemes += '"'
+-CMUPhonemes += ''
+-
+-path = "training_data/train.txt"
+-en_stress = [0, 1, 2, 3]
+-cn_tone = [4, 5, 6, 7, 8]
+-tone = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+-
+-
+-for line in open(path).readlines():
+-    line = line.strip().split("|")[5].split(" ")
+-    for word in line:
+-        word_list.append(word)
+-
+-word_set = set(word_list)
+-
+-print(word_set)
+-print(len(word_set))
+-
+-replace_set = []
+-
+-for word in word_set:
+-    if word not in CMUPhonemes:
+-        replace_set.append(word)
+-
+-
+-path = "training_data/train.txt"
+-path2 = open("training_data/train_2.txt", mode='w')
+-
+-for line in open(path).readlines():
+-    line = line.strip().split("|")
+-    phone_list = line[5].split(" ")
+-    formate_phone_list=[]
+-    for phone in phone_list:
+-        if "#" not in phone:
+-            formate_phone_list.append(phone)
+-        for replace_word in replace_set:
+-            if replace_word in phone:
+-                continue
+-            pass
+-
+-    formate_phone = " ".join(formate_phone_list)
+-
+-    line[5] = formate_phone
+-    new_line = "|".join(line)
+-    print(new_line, file=path2)
+diff --git a/hparams.py b/hparams.py
+index 8199a68..b174c11 100644
+--- a/hparams.py
++++ b/hparams.py
+@@ -80,9 +80,9 @@ hparams = tf.contrib.training.HParams(
+ 
+ 	#Mel spectrogram
+ 	n_fft = 2048, #Extra window size is filled with 0 paddings to match this parameter
+-	hop_size = 300, #For 22050Hz, 275 ~= 12.5 ms (0.0125 * sample_rate)
+-	win_size = 1200, #For 22050Hz, 1100 ~= 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
+-	sample_rate = 24000, #22050 Hz (corresponding to ljspeech dataset) (sox --i <filename>)
++	hop_size = 275, #For 22050Hz, 275 ~= 12.5 ms (0.0125 * sample_rate)
++	win_size = 1100, #For 22050Hz, 1100 ~= 50 ms (If None, win_size = n_fft) (0.05 * sample_rate)
++	sample_rate = 22050, #22050 Hz (corresponding to ljspeech dataset) (sox --i <filename>)
+ 	frame_shift_ms = None, #Can replace hop_size parameter. (Recommended: 12.5)
+ 
+ 	#M-AILABS (and other datasets) trim params (there parameters are usually correct for any data, but definitely must be tuned for specific speakers)
+@@ -119,9 +119,6 @@ hparams = tf.contrib.training.HParams(
+ 	stop_at_any = True, #Determines whether the decoder should stop when predicting <stop> to any frame or to all of them (True works pretty well)
+ 
+ 	embedding_dim = 512, #dimension of embedding space
+-	tone_embedding_dim = 32,
+-	language_embedding_dim=32,
+-	# speaker_num=3,
+ 
+ 	#Encoder parameters
+ 	enc_conv_num_layers = 3, #number of encoder convolutional layers
+@@ -161,7 +158,7 @@ hparams = tf.contrib.training.HParams(
+ 	mask_encoder = True, #whether to mask encoder padding while computing attention. Set to True for better prosody but slower convergence.
+ 	mask_decoder = False, #Whether to use loss mask for padded sequences (if False, <stop_token> loss function will not be weighted, else recommended pos_weight = 20)
+ 	cross_entropy_pos_weight = 20, #Use class weights to reduce the stop token classes imbalance (by adding more penalty on False Negatives (FN)) (1 = disabled)
+-	predict_linear = False, #Whether to add a post-processing network to the Tacotron to predict linear spectrograms (True mode Not tested!!)
++	predict_linear = True, #Whether to add a post-processing network to the Tacotron to predict linear spectrograms (True mode Not tested!!)
+ 	###########################################################################################################################################
+ 
+ 
+diff --git a/merge_data.py b/merge_data.py
+deleted file mode 100644
+index c44f6c9..0000000
+--- a/merge_data.py
++++ /dev/null
+@@ -1,47 +0,0 @@
+-import os
+-import random
+-import shutil
+-from glob import glob
+-
+-data_dir_list = ["training_biaobei_wavernn_24k", "training_ljspeech_wavernn_24k"]
+-root = "/home/lizijian/data0/tacotron_multi_lingual/tacotron"
+-if not os.path.exists(os.path.join(root, "training_data")):
+-    os.mkdir(os.path.join(root, "training_data"))
+-
+-os.mkdir(os.path.join(root, "training_data/mels"))
+-os.mkdir(os.path.join(root, "training_data/linear"))
+-os.mkdir(os.path.join(root, "training_data/audio"))
+-
+-train_file = open(os.path.join(root, "training_data/train.txt"), mode="w")
+-
+-meta_data_list = list()
+-
+-for data_dir in data_dir_list:
+-    data_dir = os.path.join(root, data_dir)
+-
+-    for data_path in glob(os.path.join(data_dir, "mels", "*.npy")):
+-        data_name = os.path.basename(data_path)
+-        new_data_path = os.path.join(root, "training_data", "mels", data_name)
+-        shutil.copyfile(data_path, new_data_path)
+-
+-    for data_path in glob(os.path.join(data_dir, "linear", "*.npy")):
+-        data_name = os.path.basename(data_path)
+-        new_data_path = os.path.join(root, "training_data", "linear", data_name)
+-        shutil.copyfile(data_path, new_data_path)
+-
+-    for data_path in glob(os.path.join(data_dir, "audio", "*.npy")):
+-        data_name = os.path.basename(data_path)
+-        new_data_path = os.path.join(root, "training_data", "audio", data_name)
+-        shutil.copyfile(data_path, new_data_path)
+-
+-meta_data_list = list()
+-for index, data_dir in enumerate(data_dir_list):
+-    for line in open(os.path.join(root, data_dir, "cmu_long.txt")).readlines():
+-        line = line.strip() + "|%d" % index
+-        meta_data_list.append(line)
+-
+-random.shuffle(meta_data_list)
+-
+-for meta_data in meta_data_list:
+-    print(meta_data, file=train_file)
+-
+diff --git a/preprocess.py b/preprocess.py
+index a0de334..a74c0df 100644
+--- a/preprocess.py
++++ b/preprocess.py
+@@ -1,47 +1,12 @@
+ import argparse
+ import os
+-import re
+ from multiprocessing import cpu_count
+-from pypinyin.style._utils import get_initials, get_finals
+ 
+-from datasets.process_text import process_en, get_pinyin2cmu_dict
+ from datasets import preprocessor
+ from hparams import hparams
+ from tqdm import tqdm
+-from g2p_en import G2p
+-from glob import glob
+-g2p=G2p()
+-outf=open('Preprocess.log', 'w', encoding='utf-8')
+-# python preprocess.py --single-speaker --dataset ../datasets/tts_data/BZNSYP/ --output training_biaobei_wavernn_24k --language cn
+-# python preprocess.py --single-speaker --dataset ../datasets/tts_data/ljspeech/ --output training_ljspeech_wavernn_24k
+-#python preprocess.py --single-speaker --dataset ../datasets/tts_data/ljspeech/ --hparams_json tools/wavernn24khparams.json --output training_ljspeech_wavernn_24k
+-#python preprocess.py --language cn --dataset ../datasets/cn_dataset/sd235/ --hparams_json logs-cn-sd235-bz60-xvector-mfcc/hparams.json --output training_cn_sd235
+-#python preprocess.py --single-speaker --language cn --dataset ../datasets/tts_data/cn_60_1/ --hparams_json logs-cn-clearclearsd235-bz60-xvector-mfcc --output training_cn_60_1
+-#python preprocess.py --dataset ../datasets/tts_data/libritts_clean/ --hparams_json tools/waveglow_hparams.json --output training_libritts_clean_waveglow (for waveglow)
+-#python preprocess.py --dataset ../datasets/tts_data/libritts_clean/ --hparams_json tools/wavernn_hparams.json --output training_libritts_clean_wavernn (for wavernn)
+-#python preprocess.py --training_dataset ../datasets/tts_training/training_tts_clean/ --hparams_json tools/waveglow_hparams.json --cmu_only (for producing phoneme only)
+-def preprocess(args, input_folders, out_dir, hparams):
+-    mel_dir = os.path.join(out_dir, 'mels')
+-    wav_dir = os.path.join(out_dir, 'audio')
+-    linear_dir = os.path.join(out_dir, 'linear')
+-    os.makedirs(mel_dir, exist_ok=True)
+-    os.makedirs(wav_dir, exist_ok=True)
+-    os.makedirs(linear_dir, exist_ok=True)
+-    metadata = preprocessor.build_from_path(
+-        hparams, input_folders, mel_dir, linear_dir, wav_dir, args.n_jobs, tqdm=tqdm)
+-    write_metadata(metadata, out_dir)
+ 
+-# For multiple speakers
+-def folder_level_preprocess(args, input_folders, out_dir, hparams):
+-    if args.cmu_only:
+-        convert_cmu(args.training_dataset)
+-    else:
+-        metadata_list = preprocessor.folder_level_build_from_path(
+-            hparams, input_folders, out_dir, args.n_jobs, tqdm=tqdm, mode=args.language.split('_')[0])
+-        for metadata, out_dir in metadata_list:
+-            write_metadata(metadata, out_dir, mode=args.language.split('_')[0])
+ 
+-<<<<<<< HEAD
+ def preprocess(args, input_folders, out_dir, hparams):
+ 	mel_dir = os.path.join(out_dir, 'mels')
+ 	wav_dir = os.path.join(out_dir, 'audio')
+@@ -66,225 +31,26 @@ def write_metadata(metadata, out_dir):
+ 	print('Max input length (text chars): {}'.format(max(len(m[5]) for m in metadata)))
+ 	print('Max mel frames length: {}'.format(max(int(m[4]) for m in metadata)))
+ 	print('Max audio timesteps length: {}'.format(max(m[3] for m in metadata)))
+-=======
+-def convert_cmu(training_dataset):
+-    training_dirs = glob('%s/' % training_dataset)
+-    for training_dir in training_dirs:
+-        with open(os.path.join(training_dir, 'train.txt'), 'r', encoding='utf-8') as f:
+-            with open(os.path.join(training_dir, 'cmu_long.txt'), 'w', encoding='utf-8') as outf:
+-                for line in f.readlines():
+-                    line=line.strip()
+-                    if line=='':
+-                        continue
+-                    m=line.split('|')
+-                    m=m[:-1]
+-                    if m[0] is not None:
+-                        spkid=m[0].split('-',1)[1].split('.')[0]
+-                        m[-1]=' '.join(g2p(m[-1].strip()))
+-                        m.append("%s.npy" % spkid)
+-                        outf.write('|'.join([str(x) for x in m]) + '\n')
+-
+-def part2(text, pinyin2cmu_dict):
+-    phone_list = list()
+-    tone_list = list()
+-    #     print(text)
+-    text = re.sub(r'[^\x00-\x7F]+', '', text)
+-    #     exit()
+-    new_phone_list = list()
+-    for pinyin in text.split(" "):
+-        if "#" not in pinyin:
+-            tone = re.findall(r"\d+\.?\d*", pinyin)
+-        else:
+-            tone = []
+-        if len(tone) == 0:
+-            tone = 7
+-        else:
+-            tone = int(tone[0]) + 2
+-        #         print(pinyin2cmu_dict.keys())
+-        #         exit()
+-        # pinyin = pinyin.replace(str(tone - 2), "")
+-
+-        head = get_initials(pinyin, False).upper()
+-        tail = get_finals(pinyin, False).upper()
+-
+-        if "#" in pinyin:
+-            new_phone_list.append(pinyin)
+-            continue
+-
+-        if head not in pinyin2cmu_dict.keys() and tail not in pinyin2cmu_dict:
+-            new_phone_list.append(pinyin)
+-            continue
+-        if head != "":
+-            new_phone_list.append(pinyin2cmu_dict[head])
+-        if tail != "":
+-            tone = re.findall(r"\d+\.?\d*", tail)
+-            if len(tone)==0:
+-                new_phone_list.append(pinyin2cmu_dict[tail])
+-            else:
+-                tail = tail.replace(str(tone[0]), "")
+-                new_phone_list.append(pinyin2cmu_dict[tail]+str(tone[0]))
+-                pass
+-        new_phone_list.append(" ")
+-        # if get_initials(pinyin, False).upper() in pinyin2cmu_dict.keys():
+-        #     new_phone_list.append(pinyin2cmu_dict[get_initials(pinyin, False).upper()])
+-        # elif get_finals(pinyin, False).upper() in pinyin2cmu_dict.keys():
+-        #     new_phone_list.append(pinyin2cmu_dict[get_finals(pinyin, False).upper()])
+-        # else:
+-        #     new_phone_list.append(pinyin)
+-
+-    return new_phone_list
+-        # print(pinyin, len(pinyin))
+-        # # print('test', get_initials(pinyin, False).upper())
+-        # # print('tste', get_finals(pinyin, False).upper())
+-        #
+-        # if get_initials(pinyin, False).upper() not in pinyin2cmu_dict.keys() and get_finals(pinyin,
+-        #                                                                                     False).upper() not in pinyin2cmu_dict.keys():
+-        #     print("not in:", pinyin)
+-        #     print(get_initials(pinyin, False).upper())
+-        #     print(get_finals(pinyin, False).upper())
+-        #     phone_list.append(pinyin)
+-        #     phone_list.append(" ")
+-        #     tone_list.append(str(tone))
+-        #     tone_list.append(str(tone))
+-        #
+-        # for pin_part in (get_initials(pinyin, False), get_finals(pinyin, False)):
+-        #     #             print(pinyin, pin_part)
+-        #     if pin_part.upper() in pinyin2cmu_dict.keys():
+-        #         phone_list.append(pinyin2cmu_dict[pin_part.upper()])
+-        #         tone_list.append(str(tone))
+-        # phone_list.append(" ")
+-        # tone_list.append(str(7))
+-
+-    # new_phone_list = list()
+-    # for phone, tone in zip(phone_list, tone_list):
+-    #     if tone != 7:
+-    #         new_phone = phone + str(tone)
+-    #     else:
+-    #         new_phone = phone
+-    #     new_phone_list.append(new_phone)
+-    #
+-    # return new_phone_list
+-
+-
+-def part(text, pinyin2cmu_dict):
+-    phone_list = list()
+-    tone_list = list()
+-#     print(text)
+-    text = re.sub(r'[^\x00-\x7F]+', '', text)
+-#     exit()
+-    for pinyin in text.split(" "):
+-        if len(pinyin) == 0 or pinyin == " " or "#" in pinyin:
+-            continue
+-        tone = re.findall(r"\d+\.?\d*", pinyin)
+-        if len(tone) == 0:
+-            tone = "5"
+-            pass
+-        tone = int(tone[0]) + 3
+-
+-        pinyin = pinyin.replace(str(tone-3), "")
+-        print(pinyin, len(pinyin))
+-        print('test', get_initials(pinyin, False).upper(), get_initials(pinyin, False).upper() not in pinyin2cmu_dict.keys())
+-        print('tste', get_finals(pinyin, False).upper(), get_finals(pinyin, False).upper() not in pinyin2cmu_dict.keys())
+-        print((get_initials(pinyin, False).upper() not in pinyin2cmu_dict.keys()) and (get_finals(pinyin, False).upper() not in pinyin2cmu_dict.keys()))
+-        print("===================")
+-        # if (get_initials(pinyin, False).upper() not in pinyin2cmu_dict.keys()) and (get_finals(pinyin, False).upper() not in pinyin2cmu_dict.keys()):
+-        #     print("not in:", pinyin)
+-        #     print(get_initials(pinyin, False).upper())
+-        #     print(get_finals(pinyin, False).upper())
+-        #     phone_list.append(pinyin)
+-        #     phone_list.append(" ")
+-        #     tone_list.append(str(tone))
+-        #     tone_list.append(str(tone))
+-        #     continue
+-        
+-        for pin_part in (get_initials(pinyin, False), get_finals(pinyin, False)):
+-            print("pin_part", pin_part)
+-            if pin_part.upper() in pinyin2cmu_dict.keys():
+-                phone_list.append(pinyin2cmu_dict[pin_part.upper()])
+-                for _ in pinyin2cmu_dict[pin_part.upper()].split(" "):
+-                    tone_list.append(str(tone))
+-                print("cmu", pinyin2cmu_dict[pin_part.upper()])
+-        phone_list.append("$")
+-        tone_list.append(str(8))
+-    # print(len(phone_list[:-5]))
+-    print(phone_list)
+-    return phone_list, tone_list
+-
+-
+-def write_metadata(metadata, out_dir, mode):
+-    pinyin2cmu_dict = get_pinyin2cmu_dict()
+-    
+-    with open(os.path.join(out_dir, 'train.txt'), 'w', encoding='utf-8') as f:
+-        for m in metadata:
+-            m=m[:-1]
+-            if m[0] is not None:
+-                spkid=m[0].split('-',1)[1].split('.')[0]
+-                m[-1]=m[-1].strip()
+-                m.append("%s.npy" % spkid)
+-                f.write('|'.join([str(x) for x in m]) + '\n')
+-    with open(os.path.join(out_dir, 'cmu_long.txt'), 'w', encoding='utf-8') as f:
+-        for m in metadata:
+-            m=m[:-1]
+-            if m[0] is not None:
+-                spkid=m[0].split('-', 1)[1].split('.')[0]
+-                if mode=='en':
+-                    m[-1]='$'.join(g2p(m[-1].strip()))
+-                    # m[-1]=' '.join(g2p(m[-1].strip()))
+-                    phone_list, stress_list = process_en(m[-1])
+-                    m[-1] = " ".join(phone_list)
+-                    m.append(" ".join(stress_list))
+-                elif mode=='cn':
+-                    phone_list, tone_list = part(m[-1], pinyin2cmu_dict)
+-                    # phone_list = part2(m[-1], pinyin2cmu_dict)
+-                    m[-1] = " ".join(phone_list)
+-                    m.append(" ".join(tone_list))
+-                
+-                m.append("%s.npy" % spkid)
+-                f.write('|'.join([str(x) for x in m]) + '\n')
+-    mel_frames = sum([int(m[4]) for m in metadata if m[0] is not None])
+-    timesteps = sum([int(m[3]) for m in metadata if m[0] is not None])
+-    total_eliminated_sec = sum([m[-1] for m in metadata])
+-    sr = hparams.sample_rate
+-    hours = timesteps / sr / 3600
+-    print('Write {} utterances, {} mel frames, {} audio timesteps, ({:.2f} hours)'.format(
+-        len(metadata), mel_frames, timesteps, hours))
+-    if len(metadata)!=0:
+-        print('Max input length (text chars): {}'.format(
+-            max(len(m[5]) for m in metadata if m[0] is not None)))
+-        print('Max mel frames length: {}'.format(max(int(m[4]) for m in metadata if m[0] is not None)))
+-        print('Max audio timesteps length: {}'.format(max(m[3] for m in metadata if m[0] is not None)))
+-    outf.write('%s\t%f\t%f\n' % (out_dir, hours, total_eliminated_sec/3600))
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+ def norm_data(args):
+ 
+-    merge_books = (args.merge_books == 'True')
++	merge_books = (args.merge_books=='True')
+ 
+-<<<<<<< HEAD
+ 	print('Selecting data folders..')
+ 	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'THCHS-30', 'BZNSYP', 'Boya_Female']
+ 	#if args.dataset not in supported_datasets:
+ 	#	raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
+ 	#		args.dataset, supported_datasets))
+-=======
+-    print('Selecting data folders..')
+-    #supported_datasets = ['LJSpeech-1.0',
+-    #                      'LJSpeech-1.1', 'M-AILABS', 'THCHS-30', 'BZNSYP']
+-    # if args.dataset not in supported_datasets:
+-    #	raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
+-    #		args.dataset, supported_datasets))
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+-    if args.dataset.startswith('LJSpeech'):
+-        return [os.path.join(args.base_dir, args.dataset)]
++	if args.dataset.startswith('LJSpeech'):
++		return [os.path.join(args.base_dir, args.dataset)]
+ 
+-    if args.dataset.startswith('THCHS-30'):
+-        return [os.path.join(args.base_dir, 'data_thchs30')]
++	if args.dataset.startswith('THCHS-30'):
++		return [os.path.join(args.base_dir, 'data_thchs30')]
+ 
+-    if args.dataset.startswith('BZNSYP'):
+-        return [os.path.join(args.base_dir, 'BZNSYP')]
++	if args.dataset.startswith('BZNSYP'):
++		return [os.path.join(args.base_dir, 'BZNSYP')]
+ 
+-<<<<<<< HEAD
+ 	if args.dataset.startswith('Boya_Female'):
+ 		return [os.path.join(args.base_dir, 'Boya_Female')] 
+ 
+@@ -294,59 +60,41 @@ def norm_data(args):
+ 		if args.language not in supported_languages:
+ 			raise ValueError('Please enter a supported language to use from M-AILABS dataset! \n{}'.format(
+ 				supported_languages))
+-=======
+-    if args.dataset == 'M-AILABS':
+-        supported_languages = ['cn', 'en_US', 'en_UK', 'fr_FR', 'it_IT', 'de_DE', 'es_ES', 'ru_RU',
+-                               'uk_UK', 'pl_PL', 'nl_NL', 'pt_PT', 'fi_FI', 'se_SE', 'tr_TR', 'ar_SA']
+-        if args.language not in supported_languages:
+-            raise ValueError('Please enter a supported language to use from M-AILABS dataset! \n{}'.format(
+-                supported_languages))
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+-        supported_voices = ['female', 'male', 'mix']
+-        if args.voice not in supported_voices:
+-            raise ValueError('Please enter a supported voice option to use from M-AILABS dataset! \n{}'.format(
+-                supported_voices))
++		supported_voices = ['female', 'male', 'mix']
++		if args.voice not in supported_voices:
++			raise ValueError('Please enter a supported voice option to use from M-AILABS dataset! \n{}'.format(
++				supported_voices))
+ 
+-        path = os.path.join(args.base_dir, args.language,
+-                            'by_book', args.voice)
+-        supported_readers = [e for e in os.listdir(
+-            path) if os.path.isdir(os.path.join(path, e))]
+-        if args.reader not in supported_readers:
+-            raise ValueError('Please enter a valid reader for your language and voice settings! \n{}'.format(
+-                supported_readers))
++		path = os.path.join(args.base_dir, args.language, 'by_book', args.voice)
++		supported_readers = [e for e in os.listdir(path) if os.path.isdir(os.path.join(path,e))]
++		if args.reader not in supported_readers:
++			raise ValueError('Please enter a valid reader for your language and voice settings! \n{}'.format(
++				supported_readers))
+ 
+-        path = os.path.join(path, args.reader)
+-        supported_books = [e for e in os.listdir(
+-            path) if os.path.isdir(os.path.join(path, e))]
+-        if merge_books:
+-            return [os.path.join(path, book) for book in supported_books]
++		path = os.path.join(path, args.reader)
++		supported_books = [e for e in os.listdir(path) if os.path.isdir(os.path.join(path,e))]
++		if merge_books:
++			return [os.path.join(path, book) for book in supported_books]
+ 
+-        else:
+-            print('supported_books '+ str(supported_books))
+-            if args.book not in supported_books:
+-                raise ValueError('Please enter a valid book for your reader settings! \n{}'.format(
+-                    supported_books))
++		else:
++			if args.book not in supported_books:
++				raise ValueError('Please enter a valid book for your reader settings! \n{}'.format(
++					supported_books))
+ 
+-            return [os.path.join(path, args.book)]
++			return [os.path.join(path, args.book)]
+ 
+-    return [os.path.join(args.base_dir, args.dataset)]
++	return [os.path.join(args.base_dir, args.dataset)]
+ 
+ 
+ def run_preprocess(args, hparams):
+-    input_folders = norm_data(args)
+-    output_folder = os.path.join(args.base_dir, args.output)
++	input_folders = norm_data(args)
++	output_folder = os.path.join(args.base_dir, args.output)
+ 
+-    #preprocess(args, input_folders, output_folder, hparams)
+-    if not args.single_speaker:
+-        input_folders = glob('%s/*' % args.dataset)
+-    else:
+-        input_folders = [args.dataset]
+-    folder_level_preprocess(args, input_folders, output_folder, hparams)
++	preprocess(args, input_folders, output_folder, hparams)
+ 
+ 
+ def main():
+-<<<<<<< HEAD
+ 	print('initializing preprocessing..')
+ 	parser = argparse.ArgumentParser()
+ 	parser.add_argument('--base_dir', default='')
+@@ -362,41 +110,11 @@ def main():
+ 	parser.add_argument('--n_jobs', type=int, default=cpu_count())
+ 	args = parser.parse_args()
+ 	modified_hp = hparams.parse(args.hparams)
+-=======
+-    print('initializing preprocessing..')
+-    parser = argparse.ArgumentParser()
+-    parser.add_argument('--base_dir', default='')
+-    parser.add_argument('--hparams', default='',
+-                        help='Hyperparameter overrides as a comma-separated list of name=value pairs')
+-    parser.add_argument('--hparams_json', default='',
+-                        help='Hyperparameter in json format')
+-    parser.add_argument('--dataset', default='BZNSYP')
+-    parser.add_argument('--language', default='en_US')
+-    parser.add_argument('--voice', default='female')
+-    parser.add_argument('--reader', default='mary_ann')
+-    parser.add_argument('--merge_books', default='False')
+-    parser.add_argument('--book', default='northandsouth')
+-    parser.add_argument('--output', default='training_data')
+-    parser.add_argument('--n_jobs', type=int, default=cpu_count())
+-    parser.add_argument('--max_mel_frames', type=int, default=15000)
+-    parser.add_argument('--cmu_only', action='store_true', help='whether just convert train.txt to cmu_spkid.txt')
+-    parser.add_argument('--single-speaker', action='store_true', help='whether the provded dataset is a single speaker or a parent folder of multiple speakers')
+-    parser.add_argument('--training_dataset', default='training')
+-    args = parser.parse_args()
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+-    modified_hp = hparams.parse(args.hparams)
+-    modified_hp.max_mel_frames = args.max_mel_frames
+-    assert args.merge_books in ('False', 'True')
+-    if args.hparams_json:
+-        import json
+-        with open(args.hparams_json) as hp_json_file:
+-            hp_json=json.dumps(json.load(hp_json_file)['hparams'])
+-            modified_hp=modified_hp.parse_json(hp_json)
++	assert args.merge_books in ('False', 'True')
+ 
+-    run_preprocess(args, modified_hp)
++	run_preprocess(args, modified_hp)
+ 
+ 
+ if __name__ == '__main__':
+-    main()
+-    outf.close()
++	main()
+diff --git a/run_loop.py b/run_loop.py
+deleted file mode 100644
+index 459a55b..0000000
+--- a/run_loop.py
++++ /dev/null
+@@ -1,4 +0,0 @@
+-import os
+-while True:
+-    os.system("python train.py --model='Tacotron'")
+-
+diff --git a/tacotron/feeder.py b/tacotron/feeder.py
+index 1da5df3..e817182 100644
+--- a/tacotron/feeder.py
++++ b/tacotron/feeder.py
+@@ -7,292 +7,255 @@ import numpy as np
+ import tensorflow as tf
+ from infolog import log
+ from sklearn.model_selection import train_test_split
+-from tacotron.utils.text import text_to_sequence, phoneme_str_to_seq
++from tacotron.utils.text import text_to_sequence
+ 
+ _batches_per_group = 64
+ 
+ class Feeder:
+-    """
+-        Feeds batches of data into queue on a background thread.
+-    """
+-
+-    def __init__(self, coordinator, metadata_filename, hparams):
+-        super(Feeder, self).__init__()
+-        self._coord = coordinator
+-        self._hparams = hparams
+-        self._cleaner_names = [x.strip() for x in hparams.cleaners.split(',')]
+-        self._train_offset = 0
+-        self._test_offset = 0
+-
+-        # Load metadata
+-        self._mel_dir = os.path.join(os.path.dirname(metadata_filename), 'mels')
+-        self._linear_dir = os.path.join(os.path.dirname(metadata_filename), 'linear')
+-        with open(metadata_filename, encoding='utf-8') as f:
+-            #in case empty line in BNZSYP
+-            f_arr=list(filter(lambda x:x.strip()!='',f))
+-            self._metadata = [line.strip().split('|') for line in f_arr]
+-
+-            frame_shift_ms = hparams.hop_size / hparams.sample_rate
+-            hours = sum([int(x[4]) for x in self._metadata]) * frame_shift_ms / (3600)
+-            log('Loaded metadata for {} examples ({:.2f} hours)'.format(len(self._metadata), hours))
+-
+-        #Train test split
+-        if hparams.tacotron_test_size is None:
+-            assert hparams.tacotron_test_batches is not None
+-
+-        test_size = (hparams.tacotron_test_size if hparams.tacotron_test_size is not None
+-            else hparams.tacotron_test_batches * hparams.tacotron_batch_size)
+-        indices = np.arange(len(self._metadata))
+-        train_indices, test_indices = train_test_split(indices,
+-            test_size=test_size, random_state=hparams.tacotron_data_random_state)
+-
+-        #Make sure test_indices is a multiple of batch_size else round up
+-        len_test_indices = self._round_down(len(test_indices), hparams.tacotron_batch_size)
+-        extra_test = test_indices[len_test_indices:]
+-        test_indices = test_indices[:len_test_indices]
+-        train_indices = np.concatenate([train_indices, extra_test])
+-
+-        self._train_meta = list(np.array(self._metadata)[train_indices])
+-        self._test_meta = list(np.array(self._metadata)[test_indices])
+-
+-        self.test_steps = len(self._test_meta) // hparams.tacotron_batch_size
+-
+-        if hparams.tacotron_test_size is None:
+-            assert hparams.tacotron_test_batches == self.test_steps
+-
+-        #pad input sequences with the <pad_token> 0 ( _ )
+-        self._pad = 0
+-        #explicitely setting the padding to a value that doesn't originally exist in the spectogram
+-        #to avoid any possible conflicts, without affecting the output range of the model too much
+-        if hparams.symmetric_mels:
+-            self._target_pad = -hparams.max_abs_value
+-        else:
+-            self._target_pad = 0.
+-        #Mark finished sequences with 1s
+-        self._token_pad = 1.
+-
+-        with tf.device('/cpu:0'):
+-            # Create placeholders for inputs and targets. Don't specify batch size because we want
+-            # to be able to feed different batch sizes at eval time.
+-            self._placeholders = [
+-            tf.placeholder(tf.int32, shape=(None, None), name='inputs'),
+-            tf.placeholder(tf.int32, shape=(None, ), name='input_lengths'),
+-            tf.placeholder(tf.float32, shape=(None, None, hparams.num_mels), name='mel_targets'),
+-            tf.placeholder(tf.float32, shape=(None, None), name='token_targets'),
+-            tf.placeholder(tf.float32, shape=(None, None, hparams.num_freq), name='linear_targets'),
+-            tf.placeholder(tf.int32, shape=(None, ), name='targets_lengths'),
+-            tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name='split_infos'),
+-            tf.placeholder(tf.int32, shape=(None, None), name="tone_input"),
+-            tf.placeholder(tf.int32, shape=(None, ), name='language_id')
+-            ]
+-
+-            # Create queue for buffering data
+-            queue = tf.FIFOQueue(16, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32, tf.int32, tf.int32], name='input_queue')
+-            self._enqueue_op = queue.enqueue(self._placeholders)
+-            self.inputs, self.input_lengths, self.mel_targets, self.token_targets, self.linear_targets, \
+-            self.targets_lengths, self.split_infos, self.tone_input, self.language_id = queue.dequeue()
+-
+-            self.inputs.set_shape(self._placeholders[0].shape)
+-            self.input_lengths.set_shape(self._placeholders[1].shape)
+-            self.mel_targets.set_shape(self._placeholders[2].shape)
+-            self.token_targets.set_shape(self._placeholders[3].shape)
+-            self.linear_targets.set_shape(self._placeholders[4].shape)
+-            self.targets_lengths.set_shape(self._placeholders[5].shape)
+-            self.split_infos.set_shape(self._placeholders[6].shape)
+-            self.tone_input.set_shape(self._placeholders[7].shape)
+-            self.language_id.set_shape(self._placeholders[8].shape)
+-
+-            # Create eval queue for buffering eval data
+-            eval_queue = tf.FIFOQueue(1, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32, tf.int32, tf.int32], name='eval_queue')
+-            self._eval_enqueue_op = eval_queue.enqueue(self._placeholders)
+-            self.eval_inputs, self.eval_input_lengths, self.eval_mel_targets, self.eval_token_targets, \
+-                self.eval_linear_targets, self.eval_targets_lengths, self.eval_split_infos, self.eval_tone_input, self.eval_language_id = eval_queue.dequeue()
+-
+-            self.eval_inputs.set_shape(self._placeholders[0].shape)
+-            self.eval_input_lengths.set_shape(self._placeholders[1].shape)
+-            self.eval_mel_targets.set_shape(self._placeholders[2].shape)
+-            self.eval_token_targets.set_shape(self._placeholders[3].shape)
+-            self.eval_linear_targets.set_shape(self._placeholders[4].shape)
+-            self.eval_targets_lengths.set_shape(self._placeholders[5].shape)
+-            self.eval_split_infos.set_shape(self._placeholders[6].shape)
+-            self.eval_tone_input.set_shape(self._placeholders[7].shape)
+-            self.eval_language_id.set_shape(self._placeholders[8].shape)
+-
+-    def start_threads(self, session):
+-        self._session = session
+-        thread = threading.Thread(name='background', target=self._enqueue_next_train_group)
+-        thread.daemon = True #Thread will close when parent quits
+-        thread.start()
+-
+-        thread = threading.Thread(name='background', target=self._enqueue_next_test_group)
+-        thread.daemon = True #Thread will close when parent quits
+-        thread.start()
+-
+-    def _get_test_groups(self):
+-        meta = self._test_meta[self._test_offset]
+-        self._test_offset += 1
+-
+-        text = meta[5]
+-
+-        input_data = np.asarray(phoneme_str_to_seq(text), dtype=np.int32)
+-        mel_target = np.load(os.path.join(self._mel_dir, meta[1]))
+-        #Create parallel sequences containing zeros to represent a non finished sequence
+-        token_target = np.asarray([0.] * (len(mel_target) - 1))
+-        linear_target = np.load(os.path.join(self._linear_dir, meta[2]))
+-
+-        tone_data = np.asarray([t for t in meta[6].split(" ")], dtype=np.int32)
+-        language_id = meta[8]
+-        return input_data, mel_target, token_target, linear_target, len(mel_target), tone_data, language_id
+-
+-    def make_test_batches(self):
+-        start = time.time()
+-
+-        # Read a group of examples
+-        n = self._hparams.tacotron_batch_size
+-        r = self._hparams.outputs_per_step
+-
+-        #Test on entire test set
+-        examples = [self._get_test_groups() for i in range(len(self._test_meta))]
+-
+-        # Bucket examples based on similar output sequence length for efficiency
+-        examples.sort(key=lambda x: x[-3])
+-        batches = [examples[i: i+n] for i in range(0, len(examples), n)]
+-        np.random.shuffle(batches)
+-
+-        log('\nGenerated {} test batches of size {} in {:.3f} sec'.format(len(batches), n, time.time() - start))
+-        return batches, r
+-
+-    def _enqueue_next_train_group(self):
+-        while not self._coord.should_stop():
+-            start = time.time()
+-
+-            # Read a group of examples
+-            n = self._hparams.tacotron_batch_size
+-            r = self._hparams.outputs_per_step
+-            examples = [self._get_next_example() for i in range(n * _batches_per_group)]
+-
+-            # Bucket examples based on similar output sequence length for efficiency
+-            examples.sort(key=lambda x: x[-3])
+-            batches = [examples[i: i+n] for i in range(0, len(examples), n)]
+-            np.random.shuffle(batches)
+-
+-            log('\nGenerated {} train batches of size {} in {:.3f} sec'.format(len(batches), n, time.time() - start))
+-            for batch in batches:
+-                feed_dict = dict(zip(self._placeholders, self._prepare_batch(batch, r)))
+-                self._session.run(self._enqueue_op, feed_dict=feed_dict)
+-
+-    def _enqueue_next_test_group(self):
+-        #Create test batches once and evaluate on them for all test steps
+-        test_batches, r = self.make_test_batches()
+-        while not self._coord.should_stop():
+-            for batch in test_batches:
+-                feed_dict = dict(zip(self._placeholders, self._prepare_batch(batch, r)))
+-                self._session.run(self._eval_enqueue_op, feed_dict=feed_dict)
+-
+-    def _get_next_example(self):
+-        """Gets a single example (input, mel_target, token_target, linear_target, mel_length) from_ disk
+-        """
+-        if self._train_offset >= len(self._train_meta):
+-            self._train_offset = 0
+-            np.random.shuffle(self._train_meta)
+-
+-        meta = self._train_meta[self._train_offset]
+-        self._train_offset += 1
+-
+-        text = meta[5]
+-
+-        input_data = np.asarray(phoneme_str_to_seq(text), dtype=np.int32)
+-        mel_target = np.load(os.path.join(self._mel_dir, meta[1]))
+-        #Create parallel sequences containing zeros to represent a non finished sequence
+-        token_target = np.asarray([0.] * (len(mel_target) - 1))
+-
+-        linear_target = np.load(os.path.join(self._linear_dir, meta[2]))
+-        language_id = meta[8]
+-        tone_data_list = [t for t in meta[6].split(" ")]
+-        if language_id == 0:
+-            tone_data_list.append("8")
+-        else:
+-            tone_data_list.append("3")
+-        tone_data = np.asarray(tone_data_list, dtype=np.int32)
+-        if input_data.shape != tone_data.shape:
+-            print(text)
+-            exit()
+-            pass
+-        return (input_data, mel_target, token_target, linear_target, len(mel_target), tone_data, language_id)
+-
+-    def _prepare_batch(self, batches, outputs_per_step):
+-        assert 0 == len(batches) % self._hparams.tacotron_num_gpus
+-        size_per_device = int(len(batches) / self._hparams.tacotron_num_gpus)
+-        np.random.shuffle(batches)
+-
+-        inputs = None
+-        mel_targets = None
+-        token_targets = None
+-        linear_targets = None
+-        targets_lengths = None
+-        split_infos = []
+-        tone_input = None
+-        language_id = None
+-
+-        targets_lengths = np.asarray([x[-3] for x in batches], dtype=np.int32) #Used to mask loss
+-        language_id = np.asarray([x[-1] for x in batches], dtype=np.int32)
+-        input_lengths = np.asarray([len(x[0]) for x in batches], dtype=np.int32)
+-
+-        for i in range(self._hparams.tacotron_num_gpus):
+-            batch = batches[size_per_device*i:size_per_device*(i+1)]
+-            # print(batch[0][0])
+-            # print(batch[0][0].shape)
+-            # print(batch[0][5])
+-            # print(batch[0][5].shape)
+-            # exit()
+-
+-            input_cur_device, input_max_len = self._prepare_inputs([x[0] for x in batch])
+-            inputs = np.concatenate((inputs, input_cur_device), axis=1) if inputs is not None else input_cur_device
+-
+-            tone_input_cur_device, tone_max_len = self._prepare_inputs([x[5] for x in batch])
+-            tone_input = np.concatenate((tone_input, tone_input_cur_device), axis=1) if tone_input is not None else tone_input_cur_device
+-
+-            mel_target_cur_device, mel_target_max_len = self._prepare_targets([x[1] for x in batch], outputs_per_step)
+-            mel_targets = np.concatenate(( mel_targets, mel_target_cur_device), axis=1) if mel_targets is not None else mel_target_cur_device
+-
+-            #Pad sequences with 1 to infer that the sequence is done
+-            token_target_cur_device, token_target_max_len = self._prepare_token_targets([x[2] for x in batch], outputs_per_step)
+-            token_targets = np.concatenate((token_targets, token_target_cur_device),axis=1) if token_targets is not None else token_target_cur_device
+-            linear_targets_cur_device, linear_target_max_len = self._prepare_targets([x[3] for x in batch], outputs_per_step)
+-            linear_targets = np.concatenate((linear_targets, linear_targets_cur_device), axis=1) if linear_targets is not None else linear_targets_cur_device
+-            split_infos.append([input_max_len, mel_target_max_len, token_target_max_len, linear_target_max_len])
+-
+-        split_infos = np.asarray(split_infos, dtype=np.int32)
+-        return (inputs, input_lengths, mel_targets, token_targets, linear_targets,
+-                targets_lengths, split_infos, tone_input, language_id)
+-
+-    def _prepare_inputs(self, inputs):
+-        max_len = max([len(x) for x in inputs])
+-        return np.stack([self._pad_input(x, max_len) for x in inputs]), max_len
+-
+-    def _prepare_targets(self, targets, alignment):
+-        max_len = max([len(t) for t in targets])
+-        data_len = self._round_up(max_len, alignment)
+-        return np.stack([self._pad_target(t, data_len) for t in targets]), data_len
+-
+-    def _prepare_token_targets(self, targets, alignment):
+-        max_len = max([len(t) for t in targets]) + 1
+-        data_len = self._round_up(max_len, alignment)
+-        return np.stack([self._pad_token_target(t, data_len) for t in targets]), data_len
+-
+-    def _pad_input(self, x, length):
+-        return np.pad(x, (0, length - x.shape[0]), mode='constant', constant_values=self._pad)
+-
+-    def _pad_target(self, t, length):
+-        return np.pad(t, [(0, length - t.shape[0]), (0, 0)], mode='constant', constant_values=self._target_pad)
+-
+-    def _pad_token_target(self, t, length):
+-        return np.pad(t, (0, length - t.shape[0]), mode='constant', constant_values=self._token_pad)
+-
+-    def _round_up(self, x, multiple):
+-        remainder = x % multiple
+-        return x if remainder == 0 else x + multiple - remainder
+-
+-    def _round_down(self, x, multiple):
+-        remainder = x % multiple
+-        return x if remainder == 0 else x - remainder
++	"""
++		Feeds batches of data into queue on a background thread.
++	"""
++
++	def __init__(self, coordinator, metadata_filename, hparams):
++		super(Feeder, self).__init__()
++		self._coord = coordinator
++		self._hparams = hparams
++		self._cleaner_names = [x.strip() for x in hparams.cleaners.split(',')]
++		self._train_offset = 0
++		self._test_offset = 0
++
++		# Load metadata
++		self._mel_dir = os.path.join(os.path.dirname(metadata_filename), 'mels')
++		self._linear_dir = os.path.join(os.path.dirname(metadata_filename), 'linear')
++		with open(metadata_filename, encoding='utf-8') as f:
++			#in case empty line in BNZSYP
++			f_arr=list(filter(lambda x:x.strip()!='',f))
++			self._metadata = [line.strip().split('|') for line in f_arr]
++			frame_shift_ms = hparams.hop_size / hparams.sample_rate
++			hours = sum([int(x[4]) for x in self._metadata]) * frame_shift_ms / (3600)
++			log('Loaded metadata for {} examples ({:.2f} hours)'.format(len(self._metadata), hours))
++
++		#Train test split
++		if hparams.tacotron_test_size is None:
++			assert hparams.tacotron_test_batches is not None
++
++		test_size = (hparams.tacotron_test_size if hparams.tacotron_test_size is not None
++			else hparams.tacotron_test_batches * hparams.tacotron_batch_size)
++		indices = np.arange(len(self._metadata))
++		train_indices, test_indices = train_test_split(indices,
++			test_size=test_size, random_state=hparams.tacotron_data_random_state)
++
++		#Make sure test_indices is a multiple of batch_size else round up
++		len_test_indices = self._round_down(len(test_indices), hparams.tacotron_batch_size)
++		extra_test = test_indices[len_test_indices:]
++		test_indices = test_indices[:len_test_indices]
++		train_indices = np.concatenate([train_indices, extra_test])
++
++		self._train_meta = list(np.array(self._metadata)[train_indices])
++		self._test_meta = list(np.array(self._metadata)[test_indices])
++
++		self.test_steps = len(self._test_meta) // hparams.tacotron_batch_size
++
++		if hparams.tacotron_test_size is None:
++			assert hparams.tacotron_test_batches == self.test_steps
++
++		#pad input sequences with the <pad_token> 0 ( _ )
++		self._pad = 0
++		#explicitely setting the padding to a value that doesn't originally exist in the spectogram
++		#to avoid any possible conflicts, without affecting the output range of the model too much
++		if hparams.symmetric_mels:
++			self._target_pad = -hparams.max_abs_value
++		else:
++			self._target_pad = 0.
++		#Mark finished sequences with 1s
++		self._token_pad = 1.
++
++		with tf.device('/cpu:0'):
++			# Create placeholders for inputs and targets. Don't specify batch size because we want
++			# to be able to feed different batch sizes at eval time.
++			self._placeholders = [
++			tf.placeholder(tf.int32, shape=(None, None), name='inputs'),
++			tf.placeholder(tf.int32, shape=(None, ), name='input_lengths'),
++			tf.placeholder(tf.float32, shape=(None, None, hparams.num_mels), name='mel_targets'),
++			tf.placeholder(tf.float32, shape=(None, None), name='token_targets'),
++			tf.placeholder(tf.float32, shape=(None, None, hparams.num_freq), name='linear_targets'),
++			tf.placeholder(tf.int32, shape=(None, ), name='targets_lengths'),
++			tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name='split_infos'),
++			]
++
++			# Create queue for buffering data
++			queue = tf.FIFOQueue(8, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32], name='input_queue')
++			self._enqueue_op = queue.enqueue(self._placeholders)
++			self.inputs, self.input_lengths, self.mel_targets, self.token_targets, self.linear_targets, self.targets_lengths, self.split_infos = queue.dequeue()
++
++			self.inputs.set_shape(self._placeholders[0].shape)
++			self.input_lengths.set_shape(self._placeholders[1].shape)
++			self.mel_targets.set_shape(self._placeholders[2].shape)
++			self.token_targets.set_shape(self._placeholders[3].shape)
++			self.linear_targets.set_shape(self._placeholders[4].shape)
++			self.targets_lengths.set_shape(self._placeholders[5].shape)
++			self.split_infos.set_shape(self._placeholders[6].shape)
++
++			# Create eval queue for buffering eval data
++			eval_queue = tf.FIFOQueue(1, [tf.int32, tf.int32, tf.float32, tf.float32, tf.float32, tf.int32, tf.int32], name='eval_queue')
++			self._eval_enqueue_op = eval_queue.enqueue(self._placeholders)
++			self.eval_inputs, self.eval_input_lengths, self.eval_mel_targets, self.eval_token_targets, \
++				self.eval_linear_targets, self.eval_targets_lengths, self.eval_split_infos = eval_queue.dequeue()
++
++			self.eval_inputs.set_shape(self._placeholders[0].shape)
++			self.eval_input_lengths.set_shape(self._placeholders[1].shape)
++			self.eval_mel_targets.set_shape(self._placeholders[2].shape)
++			self.eval_token_targets.set_shape(self._placeholders[3].shape)
++			self.eval_linear_targets.set_shape(self._placeholders[4].shape)
++			self.eval_targets_lengths.set_shape(self._placeholders[5].shape)
++			self.eval_split_infos.set_shape(self._placeholders[6].shape)
++
++	def start_threads(self, session):
++		self._session = session
++		thread = threading.Thread(name='background', target=self._enqueue_next_train_group)
++		thread.daemon = True #Thread will close when parent quits
++		thread.start()
++
++		thread = threading.Thread(name='background', target=self._enqueue_next_test_group)
++		thread.daemon = True #Thread will close when parent quits
++		thread.start()
++
++	def _get_test_groups(self):
++		meta = self._test_meta[self._test_offset]
++		self._test_offset += 1
++
++		text = meta[5]
++
++		input_data = np.asarray(text_to_sequence(text, self._cleaner_names), dtype=np.int32)
++		mel_target = np.load(os.path.join(self._mel_dir, meta[1]))
++		#Create parallel sequences containing zeros to represent a non finished sequence
++		token_target = np.asarray([0.] * (len(mel_target) - 1))
++		linear_target = np.load(os.path.join(self._linear_dir, meta[2]))
++		return (input_data, mel_target, token_target, linear_target, len(mel_target))
++
++	def make_test_batches(self):
++		start = time.time()
++
++		# Read a group of examples
++		n = self._hparams.tacotron_batch_size
++		r = self._hparams.outputs_per_step
++
++		#Test on entire test set
++		examples = [self._get_test_groups() for i in range(len(self._test_meta))]
++
++		# Bucket examples based on similar output sequence length for efficiency
++		examples.sort(key=lambda x: x[-1])
++		batches = [examples[i: i+n] for i in range(0, len(examples), n)]
++		np.random.shuffle(batches)
++
++		log('\nGenerated {} test batches of size {} in {:.3f} sec'.format(len(batches), n, time.time() - start))
++		return batches, r
++
++	def _enqueue_next_train_group(self):
++		while not self._coord.should_stop():
++			start = time.time()
++
++			# Read a group of examples
++			n = self._hparams.tacotron_batch_size
++			r = self._hparams.outputs_per_step
++			examples = [self._get_next_example() for i in range(n * _batches_per_group)]
++
++			# Bucket examples based on similar output sequence length for efficiency
++			examples.sort(key=lambda x: x[-1])
++			batches = [examples[i: i+n] for i in range(0, len(examples), n)]
++			np.random.shuffle(batches)
++
++			log('\nGenerated {} train batches of size {} in {:.3f} sec'.format(len(batches), n, time.time() - start))
++			for batch in batches:
++				feed_dict = dict(zip(self._placeholders, self._prepare_batch(batch, r)))
++				self._session.run(self._enqueue_op, feed_dict=feed_dict)
++
++	def _enqueue_next_test_group(self):
++		#Create test batches once and evaluate on them for all test steps
++		test_batches, r = self.make_test_batches()
++		while not self._coord.should_stop():
++			for batch in test_batches:
++				feed_dict = dict(zip(self._placeholders, self._prepare_batch(batch, r)))
++				self._session.run(self._eval_enqueue_op, feed_dict=feed_dict)
++
++	def _get_next_example(self):
++		"""Gets a single example (input, mel_target, token_target, linear_target, mel_length) from_ disk
++		"""
++		if self._train_offset >= len(self._train_meta):
++			self._train_offset = 0
++			np.random.shuffle(self._train_meta)
++
++		meta = self._train_meta[self._train_offset]
++		self._train_offset += 1
++
++		text = meta[5]
++
++		input_data = np.asarray(text_to_sequence(text, self._cleaner_names), dtype=np.int32)
++		mel_target = np.load(os.path.join(self._mel_dir, meta[1]))
++		#Create parallel sequences containing zeros to represent a non finished sequence
++		token_target = np.asarray([0.] * (len(mel_target) - 1))
++		linear_target = np.load(os.path.join(self._linear_dir, meta[2]))
++		return (input_data, mel_target, token_target, linear_target, len(mel_target))
++
++	def _prepare_batch(self, batches, outputs_per_step):
++		assert 0 == len(batches) % self._hparams.tacotron_num_gpus
++		size_per_device = int(len(batches) / self._hparams.tacotron_num_gpus)
++		np.random.shuffle(batches)
++
++		inputs = None
++		mel_targets = None
++		token_targets = None
++		linear_targets = None
++		targets_lengths = None
++		split_infos = []
++
++		targets_lengths = np.asarray([x[-1] for x in batches], dtype=np.int32) #Used to mask loss
++		input_lengths = np.asarray([len(x[0]) for x in batches], dtype=np.int32)
++
++		for i in range(self._hparams.tacotron_num_gpus):
++			batch = batches[size_per_device*i:size_per_device*(i+1)]
++			input_cur_device, input_max_len = self._prepare_inputs([x[0] for x in batch])
++			inputs = np.concatenate((inputs, input_cur_device), axis=1) if inputs is not None else input_cur_device
++			mel_target_cur_device, mel_target_max_len = self._prepare_targets([x[1] for x in batch], outputs_per_step)
++			mel_targets = np.concatenate(( mel_targets, mel_target_cur_device), axis=1) if mel_targets is not None else mel_target_cur_device
++
++			#Pad sequences with 1 to infer that the sequence is done
++			token_target_cur_device, token_target_max_len = self._prepare_token_targets([x[2] for x in batch], outputs_per_step)
++			token_targets = np.concatenate((token_targets, token_target_cur_device),axis=1) if token_targets is not None else token_target_cur_device
++			linear_targets_cur_device, linear_target_max_len = self._prepare_targets([x[3] for x in batch], outputs_per_step)
++			linear_targets = np.concatenate((linear_targets, linear_targets_cur_device), axis=1) if linear_targets is not None else linear_targets_cur_device
++			split_infos.append([input_max_len, mel_target_max_len, token_target_max_len, linear_target_max_len])
++
++		split_infos = np.asarray(split_infos, dtype=np.int32)
++		return (inputs, input_lengths, mel_targets, token_targets, linear_targets, targets_lengths, split_infos)
++
++	def _prepare_inputs(self, inputs):
++		max_len = max([len(x) for x in inputs])
++		return np.stack([self._pad_input(x, max_len) for x in inputs]), max_len
++
++	def _prepare_targets(self, targets, alignment):
++		max_len = max([len(t) for t in targets])
++		data_len = self._round_up(max_len, alignment)
++		return np.stack([self._pad_target(t, data_len) for t in targets]), data_len
++
++	def _prepare_token_targets(self, targets, alignment):
++		max_len = max([len(t) for t in targets]) + 1
++		data_len = self._round_up(max_len, alignment)
++		return np.stack([self._pad_token_target(t, data_len) for t in targets]), data_len
++
++	def _pad_input(self, x, length):
++		return np.pad(x, (0, length - x.shape[0]), mode='constant', constant_values=self._pad)
++
++	def _pad_target(self, t, length):
++		return np.pad(t, [(0, length - t.shape[0]), (0, 0)], mode='constant', constant_values=self._target_pad)
++
++	def _pad_token_target(self, t, length):
++		return np.pad(t, (0, length - t.shape[0]), mode='constant', constant_values=self._token_pad)
++
++	def _round_up(self, x, multiple):
++		remainder = x % multiple
++		return x if remainder == 0 else x + multiple - remainder
++
++	def _round_down(self, x, multiple):
++		remainder = x % multiple
++		return x if remainder == 0 else x - remainder
+diff --git a/tacotron/models/flip_gradient.py b/tacotron/models/flip_gradient.py
+deleted file mode 100644
+index 15217be..0000000
+--- a/tacotron/models/flip_gradient.py
++++ /dev/null
+@@ -1,27 +0,0 @@
+-from __future__ import absolute_import
+-from __future__ import division
+-from __future__ import print_function
+-
+-import tensorflow as tf
+-from tensorflow.python.framework import ops
+-
+-
+-
+-class FlipGradientBuilder(object):
+-    def __init__(self):
+-        self.num_calls = 0
+-
+-    def __call__(self, x, l=1.0):
+-        grad_name = "FlipGradient%d" % self.num_calls
+-        @ops.RegisterGradient(grad_name)
+-        def _flip_gradients(op, grad):
+-            return [tf.negative(grad) * l]
+-        
+-        g = tf.get_default_graph()
+-        with g.gradient_override_map({"Identity": grad_name}):
+-            y = tf.identity(x)
+-            
+-        self.num_calls += 1
+-        return y
+-    
+-flip_gradient = FlipGradientBuilder()
+diff --git a/tacotron/models/layer_utils.py b/tacotron/models/layer_utils.py
+deleted file mode 100644
+index c5a2053..0000000
+--- a/tacotron/models/layer_utils.py
++++ /dev/null
+@@ -1,11 +0,0 @@
+-import tensorflow as tf
+-
+-
+-def weight_variable(name, shape):
+-    return tf.get_variable(name=name, shape=shape,
+-                           initializer=tf.contrib.layers.xavier_initializer())
+-
+-
+-def bias_variable(name, shape):
+-    return tf.get_variable(name=name, shape=shape,
+-                           initializer=tf.contrib.layers.xavier_initializer())
+diff --git a/tacotron/models/modules.py b/tacotron/models/modules.py
+index be1f743..3d4b348 100644
+--- a/tacotron/models/modules.py
++++ b/tacotron/models/modules.py
+@@ -253,7 +253,7 @@ class Prenet:
+ class DecoderRNN:
+ 	"""Decoder two uni directional LSTM Cells
+ 	"""
+-	def __init__(self, is_training, layers=2, size=1024, zoneout=0.1, scope=None, language_embedding=None):
++	def __init__(self, is_training, layers=2, size=1024, zoneout=0.1, scope=None):
+ 		"""
+ 		Args:
+ 			is_training: Boolean, determines if the model is in training or inference to control zoneout
+@@ -268,7 +268,6 @@ class DecoderRNN:
+ 		self.size = size
+ 		self.zoneout = zoneout
+ 		self.scope = 'decoder_rnn' if scope is None else scope
+-		self.language_embedding = language_embedding
+ 
+ 		#Create a set of LSTM layers
+ 		self.rnn_layers = [ZoneoutLSTMCell(size, is_training,
+@@ -280,7 +279,6 @@ class DecoderRNN:
+ 
+ 	def __call__(self, inputs, states):
+ 		with tf.variable_scope(self.scope):
+-			inputs = tf.concat([inputs, self.language_embedding], axis=-1)
+ 			return self._cell(inputs, states)
+ 
+ 
+diff --git a/tacotron/models/tacotron.py b/tacotron/models/tacotron.py
+index f25acb1..47c0966 100644
+--- a/tacotron/models/tacotron.py
++++ b/tacotron/models/tacotron.py
+@@ -1,5 +1,5 @@
+-import tensorflow as tf
+-from tacotron.utils.symbols import CMUPhonemes, tone
++import tensorflow as tf 
++from tacotron.utils.symbols import symbols
+ from infolog import log
+ from tacotron.models.helpers import TacoTrainingHelper, TacoTestHelper
+ from tacotron.models.modules import *
+@@ -9,34 +9,23 @@ from tacotron.models.custom_decoder import CustomDecoder
+ from tacotron.models.attention import LocationSensitiveAttention
+ from tacotron.models.GMM_Architecture_wrappers import TacotronGMMDecoderCell
+ from tacotron.models.simple_bahdanau_attention import GMMAttention
+-<<<<<<< HEAD
+ # from tacotron.models.custom_decoder import CustomDecoder
+ # from tacotron.models.attention import LocationSensitiveAttention
+ 
+ 
+-=======
+-from tacotron.models.layer_utils import *
+-from tacotron.models.flip_gradient import flip_gradient
+-# from tacotron.models.custom_decoder import CustomDecoder
+-# from tacotron.models.attention import LocationSensitiveAttention
+-
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+ import numpy as np
+ 
+-
+ def split_func(x, split_pos):
+-    rst = []
+-    start = 0
+-    # x will be a numpy array with the contents of the placeholder below
+-    for i in range(split_pos.shape[0]):
+-        rst.append(x[:, start:start + split_pos[i]])
+-        start += split_pos[i]
+-    return rst
+-
++	rst = []
++	start = 0
++	# x will be a numpy array with the contents of the placeholder below
++	for i in range(split_pos.shape[0]):
++		rst.append(x[:,start:start+split_pos[i]])
++		start += split_pos[i]
++	return rst
+ 
+ class Tacotron():
+-<<<<<<< HEAD
+ 	"""Tacotron-2 Feature prediction Model.
+ 	"""
+ 	def __init__(self, hparams):
+@@ -465,499 +454,3 @@ class Tacotron():
+ 
+ 		#clip learning rate by max and min values (initial and final values)
+ 		return tf.minimum(tf.maximum(lr, hp.tacotron_final_learning_rate), init_lr)
+-=======
+-    """Tacotron-2 Feature prediction Model.
+-    """
+-
+-    def __init__(self, hparams):
+-        self._hparams = hparams
+-
+-    def initialize(self, inputs, input_lengths, mel_targets=None, stop_token_targets=None, linear_targets=None,
+-                   targets_lengths=None, gta=False,
+-                   global_step=None, is_training=False, is_evaluating=False, split_infos=None, tone_input=None,
+-                   language_id=None):
+-        """
+-        Initializes the model for inference
+-        sets "mel_outputs" and "alignments" fields.
+-        Args:
+-            - inputs: int32 Tensor with shape [N, T_in] where N is batch size, T_in is number of
+-              steps in the input time series, and values are character IDs
+-            - input_lengths: int32 Tensor with shape [N] where N is batch size and values are the lengths
+-            of each sequence in inputs.
+-            - mel_targets: float32 Tensor with shape [N, T_out, M] where N is batch size, T_out is number
+-            of steps in the output time series, M is num_mels, and values are entries in the mel
+-            spectrogram. Only needed for training.
+-        """
+-        if mel_targets is None and stop_token_targets is not None:
+-            raise ValueError('no multi targets were provided but token_targets were given')
+-        if mel_targets is not None and stop_token_targets is None and not gta:
+-            raise ValueError('Mel targets are provided without corresponding token_targets')
+-        if not gta and self._hparams.predict_linear == True and linear_targets is None and is_training:
+-            raise ValueError(
+-                'Model is set to use post processing to predict linear spectrograms in training but no linear targets given!')
+-        if gta and linear_targets is not None:
+-            raise ValueError('Linear spectrogram prediction is not supported in GTA mode!')
+-        if is_training and self._hparams.mask_decoder and targets_lengths is None:
+-            raise RuntimeError('Model set to mask paddings but no targets lengths provided for the mask!')
+-        if is_training and is_evaluating:
+-            raise RuntimeError('Model can not be in training and evaluation modes at the same time!')
+-
+-        split_device = '/cpu:0' if self._hparams.tacotron_num_gpus > 1 or self._hparams.split_on_cpu else '/gpu:{}'.format(
+-            self._hparams.tacotron_gpu_start_idx)
+-        with tf.device(split_device):
+-            hp = self._hparams
+-            lout_int = [tf.int32] * hp.tacotron_num_gpus
+-            lout_float = [tf.float32] * hp.tacotron_num_gpus
+-
+-            tower_input_lengths = tf.split(input_lengths, num_or_size_splits=hp.tacotron_num_gpus, axis=0)
+-            tower_language_id = tf.split(language_id, num_or_size_splits=hp.tacotron_num_gpus, axis=0)
+-            tower_targets_lengths = tf.split(targets_lengths, num_or_size_splits=hp.tacotron_num_gpus,
+-                                             axis=0) if targets_lengths is not None else targets_lengths
+-
+-            p_inputs = tf.py_func(split_func, [inputs, split_infos[:, 0]], lout_int)
+-            p_tone_input = tf.py_func(split_func, [tone_input, split_infos[:, 0]], lout_int)
+-
+-            p_mel_targets = tf.py_func(split_func, [mel_targets, split_infos[:, 1]],
+-                                       lout_float) if mel_targets is not None else mel_targets
+-            p_stop_token_targets = tf.py_func(split_func, [stop_token_targets, split_infos[:, 2]],
+-                                              lout_float) if stop_token_targets is not None else stop_token_targets
+-            p_linear_targets = tf.py_func(split_func, [linear_targets, split_infos[:, 3]],
+-                                          lout_float) if linear_targets is not None else linear_targets
+-
+-            tower_inputs = []
+-            tower_mel_targets = []
+-            tower_stop_token_targets = []
+-            tower_linear_targets = []
+-            tower_tone_input = []
+-
+-            batch_size = tf.shape(inputs)[0]
+-            mel_channels = hp.num_mels
+-            linear_channels = hp.num_freq
+-            self.one_hot_language_id = []
+-            for i in range(hp.tacotron_num_gpus):
+-                tower_inputs.append(tf.reshape(p_inputs[i], [batch_size, -1]))
+-                tower_tone_input.append(tf.reshape(p_tone_input[i], [batch_size, -1]))
+-                self.one_hot_language_id.append(tf.one_hot(tower_language_id[i], depth=2))
+-                if p_mel_targets is not None:
+-                    tower_mel_targets.append(tf.reshape(p_mel_targets[i], [batch_size, -1, mel_channels]))
+-                if p_stop_token_targets is not None:
+-                    tower_stop_token_targets.append(tf.reshape(p_stop_token_targets[i], [batch_size, -1]))
+-                if p_linear_targets is not None:
+-                    tower_linear_targets.append(tf.reshape(p_linear_targets[i], [batch_size, -1, linear_channels]))
+-
+-        self.tower_decoder_output = []
+-        self.tower_alignments = []
+-        self.tower_stop_token_prediction = []
+-        self.tower_mel_outputs = []
+-        self.tower_linear_outputs = []
+-
+-        self.tower_domain_logits = []
+-
+-        tower_embedded_inputs = []
+-        tower_enc_conv_output_shape = []
+-        tower_encoder_outputs = []
+-        tower_residual = []
+-        tower_projected_residual = []
+-
+-        # 1. Declare GPU Devices
+-        gpus = ["/gpu:{}".format(i) for i in
+-                range(hp.tacotron_gpu_start_idx, hp.tacotron_gpu_start_idx + hp.tacotron_num_gpus)]
+-        for i in range(hp.tacotron_num_gpus):
+-            with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0", worker_device=gpus[i])):
+-                with tf.variable_scope('inference') as scope:
+-                    assert hp.tacotron_teacher_forcing_mode in ('constant', 'scheduled')
+-                    if hp.tacotron_teacher_forcing_mode == 'scheduled' and is_training:
+-                        assert global_step is not None
+-
+-                    # GTA is only used for predicting mels to train Wavenet vocoder, so we ommit post processing when doing GTA synthesis
+-                    post_condition = hp.predict_linear and not gta
+-
+-                    # Embeddings ==> [batch_size, sequence_length, embedding_dim]
+-                    self.embedding_table = tf.get_variable(
+-                        'inputs_embedding', [len(CMUPhonemes), hp.embedding_dim], dtype=tf.float32)
+-                    embedded_inputs = tf.nn.embedding_lookup(self.embedding_table, tower_inputs[i])
+-
+-                    self.tone_embedding_table = \
+-                        tf.get_variable("tone_embedding", [len(tone), hp.tone_embedding_dim], dtype=tf.float32)
+-                    tone_embedding_input = tf.nn.embedding_lookup(self.tone_embedding_table, tower_tone_input[i])
+-                    embedded_inputs = tf.concat([embedded_inputs, tone_embedding_input], axis=-1)
+-
+-                    self.language_embedding_table = \
+-                        tf.get_variable("language_embedding",
+-                                        [2, hp.language_embedding_dim],
+-                                        dtype=tf.float32)
+-                    language_embedding = tf.nn.embedding_lookup(self.language_embedding_table, tower_language_id[i])
+-
+-                    # Encoder Cell ==> [batch_size, encoder_steps, encoder_lstm_units]
+-                    encoder_cell = TacotronEncoderCell(
+-                        EncoderConvolutions(is_training, hparams=hp, scope='encoder_convolutions'),
+-                        EncoderRNN(is_training, size=hp.encoder_lstm_units,
+-                                   zoneout=hp.tacotron_zoneout_rate, scope='encoder_LSTM'))
+-
+-                    encoder_outputs = encoder_cell(embedded_inputs, tower_input_lengths[i])
+-
+-                    grl_encoder_output = flip_gradient(tf.reduce_mean(encoder_outputs, axis=1))
+-                    domain_weight_1 = weight_variable(shape=[grl_encoder_output.shape[-1], 100], name="domain_weight_1")
+-                    domain_biases_1 = bias_variable(shape=[100], name="domain_biases_1")
+-                    # domain_weight_1 = tf.tile(tf.expand_dims(domain_weight_1, 0), [encoder_outputs.shape[1], 1, 1])
+-                    # domain_biases_1 = tf.tile(tf.expand_dims(domain_biases_1, 0), [encoder_outputs.shape[1], 1])
+-                    domain_feature_1 = tf.matmul(grl_encoder_output, domain_weight_1) + domain_biases_1
+-
+-                    domain_weight_2 = weight_variable(shape=[100, 2], name="domain_weight_2")
+-                    domain_biases_2 = bias_variable(shape=[2], name="domain_biases_2")
+-                    # domain_weight_2 = tf.tile(tf.expand_dims(domain_weight_2, 0), [encoder_outputs.shape[1], 1, 1])
+-                    # domain_biases_2 = tf.tile(tf.expand_dims(domain_biases_2, 0), [encoder_outputs.shape[1], 1])
+-                    domain_logits = tf.matmul(domain_feature_1, domain_weight_2) + domain_biases_2
+-
+-                # For shape visualization purpose
+-                    enc_conv_output_shape = encoder_cell.conv_output_shape
+-
+-                    # Decoder Parts
+-                    # Attention Decoder Prenet
+-                    prenet = Prenet(is_training, layers_sizes=hp.prenet_layers, drop_rate=hp.tacotron_dropout_rate,
+-                                    scope='decoder_prenet')
+-                    # Attention Mechanism
+-                    # attention_mechanism = LocationSensitiveAttention(hp.attention_dim, encoder_outputs, hparams=hp,
+-                    # 	mask_encoder=hp.mask_encoder, memory_sequence_length=tf.reshape(tower_input_lengths[i], [-1]), smoothing=hp.smoothing,
+-                    # 	cumulate_weights=hp.cumulative_weights)
+-                    attention_mechanism = GMMAttention(num_units=hp.attention_dim, memory=encoder_outputs,
+-                                                       memory_sequence_length=tf.reshape(tower_input_lengths[i], [-1]))
+-
+-                    # Decoder LSTM Cells
+-                    decoder_lstm = DecoderRNN(is_training, layers=hp.decoder_layers,
+-                                              size=hp.decoder_lstm_units, zoneout=hp.tacotron_zoneout_rate,
+-                                              scope='decoder_LSTM',
+-                                              language_embedding=language_embedding)
+-                    # Frames Projection layer
+-                    frame_projection = FrameProjection(hp.num_mels * hp.outputs_per_step,
+-                                                       scope='linear_transform_projection')
+-                    # <stop_token> projection layer
+-                    stop_projection = StopProjection(is_training or is_evaluating, shape=hp.outputs_per_step,
+-                                                     scope='stop_token_projection')
+-
+-                    # Decoder Cell ==> [batch_size, decoder_steps, num_mels * r] (after decoding)
+-                    # decoder_cell = TacotronDecoderCell(
+-                    # 	prenet,
+-                    # 	attention_mechanism,
+-                    # 	decoder_lstm,
+-                    # 	frame_projection,
+-                    # 	stop_projection)
+-                    decoder_cell = TacotronGMMDecoderCell(prenet=prenet, attention_mechanism=attention_mechanism,
+-                                                          rnn_cell=decoder_lstm, frame_projection=frame_projection,
+-                                                          stop_projection=stop_projection)
+-
+-                    # Define the helper for our decoder
+-                    if is_training or is_evaluating or gta:
+-                        self.helper = TacoTrainingHelper(batch_size, tower_mel_targets[i], hp, gta, is_evaluating,
+-                                                         global_step)
+-                    else:
+-                        self.helper = TacoTestHelper(batch_size, hp)
+-
+-                    # initial decoder state
+-                    decoder_init_state = decoder_cell.zero_state(batch_size=batch_size, dtype=tf.float32)
+-
+-                    # Only use max iterations at synthesis time
+-                    max_iters = hp.max_iters if not (is_training or is_evaluating) else None
+-
+-                    # Decode
+-                    (frames_prediction, stop_token_prediction, _), final_decoder_state, _ = dynamic_decode(
+-                        CustomDecoder(decoder_cell, self.helper, decoder_init_state),
+-                        impute_finished=False,
+-                        maximum_iterations=max_iters,
+-                        swap_memory=hp.tacotron_swap_with_cpu)
+-
+-                    # Reshape outputs to be one output per entry
+-                    # ==> [batch_size, non_reduced_decoder_steps (decoder_steps * r), num_mels]
+-                    decoder_output = tf.reshape(frames_prediction, [batch_size, -1, hp.num_mels])
+-                    stop_token_prediction = tf.reshape(stop_token_prediction, [batch_size, -1])
+-
+-                    # Postnet
+-                    postnet = Postnet(is_training, hparams=hp, scope='postnet_convolutions')
+-
+-                    # Compute residual using post-net ==> [batch_size, decoder_steps * r, postnet_channels]
+-                    residual = postnet(decoder_output)
+-
+-                    # Project residual to same dimension as mel spectrogram
+-                    # ==> [batch_size, decoder_steps * r, num_mels]
+-                    residual_projection = FrameProjection(hp.num_mels, scope='postnet_projection')
+-                    projected_residual = residual_projection(residual)
+-
+-                    # Compute the mel spectrogram
+-                    mel_outputs = decoder_output + projected_residual
+-
+-                    if post_condition:
+-                        # Add post-processing CBHG. This does a great job at extracting features from mels before projection to Linear specs.
+-                        post_cbhg = CBHG(hp.cbhg_kernels, hp.cbhg_conv_channels, hp.cbhg_pool_size,
+-                                         [hp.cbhg_projection, hp.num_mels],
+-                                         hp.cbhg_projection_kernel_size, hp.cbhg_highwaynet_layers,
+-                                         hp.cbhg_highway_units, hp.cbhg_rnn_units, is_training, name='CBHG_postnet')
+-
+-                        # [batch_size, decoder_steps(mel_frames), cbhg_channels]
+-                        post_outputs = post_cbhg(mel_outputs, None)
+-
+-                        # Linear projection of extracted features to make linear spectrogram
+-                        linear_specs_projection = FrameProjection(hp.num_freq, scope='cbhg_linear_specs_projection')
+-
+-                        # [batch_size, decoder_steps(linear_frames), num_freq]
+-                        linear_outputs = linear_specs_projection(post_outputs)
+-
+-                    # Grab alignments from the final decoder state
+-                    alignments = tf.transpose(final_decoder_state.alignment_history.stack(), [1, 2, 0])
+-
+-                    self.tower_decoder_output.append(decoder_output)
+-                    self.tower_alignments.append(alignments)
+-                    self.tower_stop_token_prediction.append(stop_token_prediction)
+-                    self.tower_mel_outputs.append(mel_outputs)
+-                    self.tower_domain_logits.append(domain_logits)
+-
+-                    tower_embedded_inputs.append(embedded_inputs)
+-                    tower_enc_conv_output_shape.append(enc_conv_output_shape)
+-                    tower_encoder_outputs.append(encoder_outputs)
+-                    tower_residual.append(residual)
+-                    tower_projected_residual.append(projected_residual)
+-
+-                    if post_condition:
+-                        self.tower_linear_outputs.append(linear_outputs)
+-            log('initialisation done {}'.format(gpus[i]))
+-
+-        if is_training:
+-            self.ratio = self.helper._ratio
+-        self.tower_inputs = tower_inputs
+-        self.tower_input_lengths = tower_input_lengths
+-        self.tower_mel_targets = tower_mel_targets
+-        self.tower_linear_targets = tower_linear_targets
+-        self.tower_targets_lengths = tower_targets_lengths
+-        self.tower_stop_token_targets = tower_stop_token_targets
+-
+-        self.all_vars = tf.trainable_variables()
+-
+-        log('Initialized Tacotron model. Dimensions (? = dynamic shape): ')
+-        log('  Train mode:               {}'.format(is_training))
+-        log('  Eval mode:                {}'.format(is_evaluating))
+-        log('  GTA mode:                 {}'.format(gta))
+-        log('  Synthesis mode:           {}'.format(not (is_training or is_evaluating)))
+-        log('  Input:                    {}'.format(inputs.shape))
+-        for i in range(hp.tacotron_num_gpus):
+-            log('  device:                   {}'.format(i + hp.tacotron_gpu_start_idx))
+-            log('  embedding:                {}'.format(tower_embedded_inputs[i].shape))
+-            log('  enc conv out:             {}'.format(tower_enc_conv_output_shape[i]))
+-            log('  encoder out:              {}'.format(tower_encoder_outputs[i].shape))
+-            log('  decoder out:              {}'.format(self.tower_decoder_output[i].shape))
+-            log('  residual out:             {}'.format(tower_residual[i].shape))
+-            log('  projected residual out:   {}'.format(tower_projected_residual[i].shape))
+-            log('  mel out:                  {}'.format(self.tower_mel_outputs[i].shape))
+-            if post_condition:
+-                log('  linear out:               {}'.format(self.tower_linear_outputs[i].shape))
+-            log('  <stop_token> out:         {}'.format(self.tower_stop_token_prediction[i].shape))
+-
+-            # 1_000_000 is causing syntax problems for some people?! Python please :)
+-            log('  Tacotron Parameters       {:.3f} Million.'.format(
+-                np.sum([np.prod(v.get_shape().as_list()) for v in self.all_vars]) / 1000000))
+-
+-    def add_loss(self):
+-        '''Adds loss to the model. Sets "loss" field. initialize must have been called.'''
+-        hp = self._hparams
+-
+-        self.tower_before_loss = []
+-        self.tower_after_loss = []
+-        self.tower_stop_token_loss = []
+-        self.tower_regularization_loss = []
+-        self.tower_linear_loss = []
+-        self.tower_domain_loss = []
+-        self.tower_loss = []
+-
+-        total_before_loss = 0
+-        total_after_loss = 0
+-        total_stop_token_loss = 0
+-        total_regularization_loss = 0
+-        total_linear_loss = 0
+-        total_loss = 0
+-        total_domain_loss = 0
+-
+-        gpus = ["/gpu:{}".format(i) for i in
+-                range(hp.tacotron_gpu_start_idx, hp.tacotron_gpu_start_idx + hp.tacotron_num_gpus)]
+-
+-        for i in range(hp.tacotron_num_gpus):
+-            with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0", worker_device=gpus[i])):
+-                with tf.variable_scope('loss') as scope:
+-                    if hp.mask_decoder:
+-                        # Compute loss of predictions before postnet
+-                        domain_loss = tf.reduce_mean(
+-							tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.tower_domain_logits[i],
+-																	   labels=self.one_hot_language_id[i]))
+-                        before = MaskedMSE(self.tower_mel_targets[i], self.tower_decoder_output[i],
+-                                           self.tower_targets_lengths[i],
+-                                           hparams=self._hparams)
+-                        # Compute loss after postnet
+-                        after = MaskedMSE(self.tower_mel_targets[i], self.tower_mel_outputs[i],
+-                                          self.tower_targets_lengths[i],
+-                                          hparams=self._hparams)
+-                        # Compute <stop_token> loss (for learning dynamic generation stop)
+-                        stop_token_loss = MaskedSigmoidCrossEntropy(self.tower_stop_token_targets[i],
+-                                                                    self.tower_stop_token_prediction[i],
+-                                                                    self.tower_targets_lengths[i],
+-                                                                    hparams=self._hparams)
+-                        # Compute masked linear loss
+-                        if hp.predict_linear:
+-                            # Compute Linear L1 mask loss (priority to low frequencies)
+-                            linear_loss = MaskedLinearLoss(self.tower_linear_targets[i], self.tower_linear_outputs[i],
+-                                                           self.targets_lengths, hparams=self._hparams)
+-                        else:
+-                            linear_loss = 0.
+-                    else:
+-                        # Compute loss of predictions before postnet
+-                        before = tf.losses.mean_squared_error(self.tower_mel_targets[i], self.tower_decoder_output[i])
+-                        # Compute loss after postnet
+-                        after = tf.losses.mean_squared_error(self.tower_mel_targets[i], self.tower_mel_outputs[i])
+-                        # Compute <stop_token> loss (for learning dynamic generation stop)
+-                        domain_loss = tf.reduce_mean(
+-                            tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.tower_domain_logits[i],
+-                                                                       labels=self.one_hot_language_id[i]))
+-                        stop_token_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+-                            labels=self.tower_stop_token_targets[i],
+-                            logits=self.tower_stop_token_prediction[i]))
+-
+-                        if hp.predict_linear:
+-                            # Compute linear loss
+-                            linear_loss = tf.losses.mean_squared_error(self.tower_linear_targets[i],
+-                                                                       self.tower_linear_outputs[i])
+-                        else:
+-                            linear_loss = 0.
+-
+-                    # Compute the regularization weight
+-                    if hp.tacotron_scale_regularization:
+-                        reg_weight_scaler = 1. / (2 * hp.max_abs_value) if hp.symmetric_mels else 1. / (
+-                            hp.max_abs_value)
+-                        reg_weight = hp.tacotron_reg_weight * reg_weight_scaler
+-                    else:
+-                        reg_weight = hp.tacotron_reg_weight
+-
+-                    # Regularize variables
+-                    # Exclude all types of bias, RNN (Bengio et al. On the difficulty of training recurrent neural networks), embeddings and prediction projection layers.
+-                    # Note that we consider attention mechanism v_a weights as a prediction projection layer and we don't regularize it. (This gave better stability)
+-                    regularization = tf.add_n([tf.nn.l2_loss(v) for v in self.all_vars
+-                                               if not (
+-                                'bias' in v.name or 'Bias' in v.name or '_projection' in v.name or 'inputs_embedding' in v.name
+-                                or 'RNN' in v.name or 'LSTM' in v.name)]) * reg_weight
+-
+-                    # Compute final loss term
+-                    self.tower_before_loss.append(before)
+-                    self.tower_after_loss.append(after)
+-                    self.tower_stop_token_loss.append(stop_token_loss)
+-                    self.tower_regularization_loss.append(regularization)
+-                    self.tower_linear_loss.append(linear_loss)
+-                    self.tower_domain_loss.append(domain_loss)
+-
+-                    loss = before + after + stop_token_loss + regularization + linear_loss + domain_loss
+-                    self.tower_loss.append(loss)
+-
+-        for i in range(hp.tacotron_num_gpus):
+-            total_before_loss += self.tower_before_loss[i]
+-            total_after_loss += self.tower_after_loss[i]
+-            total_stop_token_loss += self.tower_stop_token_loss[i]
+-            total_regularization_loss += self.tower_regularization_loss[i]
+-            total_linear_loss += self.tower_linear_loss[i]
+-            total_domain_loss += self.tower_domain_loss[i]
+-            total_loss += self.tower_loss[i]
+-
+-        self.before_loss = total_before_loss / hp.tacotron_num_gpus
+-        self.after_loss = total_after_loss / hp.tacotron_num_gpus
+-        self.stop_token_loss = total_stop_token_loss / hp.tacotron_num_gpus
+-        self.regularization_loss = total_regularization_loss / hp.tacotron_num_gpus
+-        self.linear_loss = total_linear_loss / hp.tacotron_num_gpus
+-        self.domain_loss = total_domain_loss / hp.tacotron_num_gpus
+-        self.loss = total_loss / hp.tacotron_num_gpus
+-
+-    def add_optimizer(self, global_step):
+-        '''Adds optimizer. Sets "gradients" and "optimize" fields. add_loss must have been called.
+-        Args:
+-            global_step: int32 scalar Tensor representing current global step in training
+-        '''
+-        hp = self._hparams
+-        tower_gradients = []
+-
+-        # 1. Declare GPU Devices
+-        gpus = ["/gpu:{}".format(i) for i in
+-                range(hp.tacotron_gpu_start_idx, hp.tacotron_gpu_start_idx + hp.tacotron_num_gpus)]
+-
+-        grad_device = '/cpu:0' if hp.tacotron_num_gpus > 1 else gpus[0]
+-
+-        with tf.device(grad_device):
+-            with tf.variable_scope('optimizer') as scope:
+-                if hp.tacotron_decay_learning_rate:
+-                    self.decay_steps = hp.tacotron_decay_steps
+-                    self.decay_rate = hp.tacotron_decay_rate
+-                    self.learning_rate = self._learning_rate_decay(hp.tacotron_initial_learning_rate, global_step)
+-                else:
+-                    self.learning_rate = tf.convert_to_tensor(hp.tacotron_initial_learning_rate)
+-
+-                optimizer = tf.train.AdamOptimizer(self.learning_rate, hp.tacotron_adam_beta1,
+-                                                   hp.tacotron_adam_beta2, hp.tacotron_adam_epsilon)
+-
+-        # 2. Compute Gradient
+-        for i in range(hp.tacotron_num_gpus):
+-            #  Device placement
+-            with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0", worker_device=gpus[i])):
+-                # agg_loss += self.tower_loss[i]
+-                with tf.variable_scope('optimizer') as scope:
+-                    gradients = optimizer.compute_gradients(self.tower_loss[i])
+-                    tower_gradients.append(gradients)
+-
+-        # 3. Average Gradient
+-        with tf.device(grad_device):
+-            avg_grads = []
+-            vars = []
+-            for grad_and_vars in zip(*tower_gradients):
+-                # grads_vars = [(grad1, var), (grad2, var), ...]
+-                grads = []
+-                for g, _ in grad_and_vars:
+-                    expanded_g = tf.expand_dims(g, 0)
+-                    # Append on a 'tower' dimension which we will average over below.
+-                    grads.append(expanded_g)
+-                # Average over the 'tower' dimension.
+-                grad = tf.concat(axis=0, values=grads)
+-                grad = tf.reduce_mean(grad, 0)
+-
+-                v = grad_and_vars[0][1]
+-                avg_grads.append(grad)
+-                vars.append(v)
+-
+-            self.gradients = avg_grads
+-            # Just for causion
+-            # https://github.com/Rayhane-mamah/Tacotron-2/issues/11
+-            if hp.tacotron_clip_gradients:
+-                clipped_gradients, _ = tf.clip_by_global_norm(avg_grads, 1.)  # __mark 0.5 refer
+-            else:
+-                clipped_gradients = avg_grads
+-
+-            # Add dependency on UPDATE_OPS; otherwise batchnorm won't work correctly. See:
+-            # https://github.com/tensorflow/tensorflow/issues/1122
+-            with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
+-                self.optimize = optimizer.apply_gradients(zip(clipped_gradients, vars),
+-                                                          global_step=global_step)
+-
+-    def _learning_rate_decay(self, init_lr, global_step):
+-        #################################################################
+-        # Narrow Exponential Decay:
+-
+-        # Phase 1: lr = 1e-3
+-        # We only start learning rate decay after 50k steps
+-
+-        # Phase 2: lr in ]1e-5, 1e-3[
+-        # decay reach minimal value at step 310k
+-
+-        # Phase 3: lr = 1e-5
+-        # clip by minimal learning rate value (step > 310k)
+-        #################################################################
+-        hp = self._hparams
+-
+-        # Compute natural exponential decay
+-        lr = tf.train.exponential_decay(init_lr,
+-                                        global_step - hp.tacotron_start_decay,  # lr = 1e-3 at step 50k
+-                                        self.decay_steps,
+-                                        self.decay_rate,  # lr = 1e-5 around step 310k
+-                                        name='lr_exponential_decay')
+-
+-        # clip learning rate by max and min values (initial and final values)
+-        return tf.minimum(tf.maximum(lr, hp.tacotron_final_learning_rate), init_lr)
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+diff --git a/tacotron/train.py b/tacotron/train.py
+index 213d64b..a632499 100644
+--- a/tacotron/train.py
++++ b/tacotron/train.py
+@@ -21,115 +21,97 @@ log = infolog.log
+ 
+ 
+ def add_embedding_stats(summary_writer, embedding_names, paths_to_meta, checkpoint_path):
+-    # Create tensorboard projector
+-    config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
+-    config.model_checkpoint_path = checkpoint_path
+-
+-    for embedding_name, path_to_meta in zip(embedding_names, paths_to_meta):
+-        # Initialize config
+-        embedding = config.embeddings.add()
+-        # Specifiy the embedding variable and the metadata
+-        embedding.tensor_name = embedding_name
+-        embedding.metadata_path = path_to_meta
+-
+-    # Project the embeddings to space dimensions for visualization
+-    tf.contrib.tensorboard.plugins.projector.visualize_embeddings(summary_writer, config)
+-
++	#Create tensorboard projector
++	config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
++	config.model_checkpoint_path = checkpoint_path
++
++	for embedding_name, path_to_meta in zip(embedding_names, paths_to_meta):
++		#Initialize config
++		embedding = config.embeddings.add()
++		#Specifiy the embedding variable and the metadata
++		embedding.tensor_name = embedding_name
++		embedding.metadata_path = path_to_meta
++	
++	#Project the embeddings to space dimensions for visualization
++	tf.contrib.tensorboard.plugins.projector.visualize_embeddings(summary_writer, config)
+ 
+ def add_train_stats(model, hparams):
+-    with tf.variable_scope('stats') as scope:
+-        for i in range(hparams.tacotron_num_gpus):
+-            tf.summary.histogram('mel_outputs %d' % i, model.tower_mel_outputs[i])
+-            tf.summary.histogram('mel_targets %d' % i, model.tower_mel_targets[i])
+-        tf.summary.scalar('before_loss', model.before_loss)
+-        tf.summary.scalar('after_loss', model.after_loss)
+-
+-        if hparams.predict_linear:
+-            tf.summary.scalar('linear_loss', model.linear_loss)
+-            for i in range(hparams.tacotron_num_gpus):
+-                tf.summary.histogram('mel_outputs %d' % i, model.tower_linear_outputs[i])
+-                tf.summary.histogram('mel_targets %d' % i, model.tower_linear_targets[i])
+-
+-        tf.summary.scalar('regularization_loss', model.regularization_loss)
+-        tf.summary.scalar('stop_token_loss', model.stop_token_loss)
+-        tf.summary.scalar('loss', model.loss)
+-        tf.summary.scalar('learning_rate', model.learning_rate)  # Control learning rate decay speed
+-        if hparams.tacotron_teacher_forcing_mode == 'scheduled':
+-            tf.summary.scalar('teacher_forcing_ratio',
+-                              model.ratio)  # Control teacher forcing ratio decay when mode = 'scheduled'
+-        gradient_norms = [tf.norm(grad) for grad in model.gradients]
+-        tf.summary.histogram('gradient_norm', gradient_norms)
+-        tf.summary.scalar('max_gradient_norm',
+-                          tf.reduce_max(gradient_norms))  # visualize gradients (in case of explosion)
+-        return tf.summary.merge_all()
+-
++	with tf.variable_scope('stats') as scope:
++		for i in range(hparams.tacotron_num_gpus):
++			tf.summary.histogram('mel_outputs %d' % i, model.tower_mel_outputs[i])
++			tf.summary.histogram('mel_targets %d' % i, model.tower_mel_targets[i])
++		tf.summary.scalar('before_loss', model.before_loss)
++		tf.summary.scalar('after_loss', model.after_loss)
++
++		if hparams.predict_linear:
++			tf.summary.scalar('linear_loss', model.linear_loss)
++			for i in range(hparams.tacotron_num_gpus):
++				tf.summary.histogram('mel_outputs %d' % i, model.tower_linear_outputs[i])
++				tf.summary.histogram('mel_targets %d' % i, model.tower_linear_targets[i])
++		
++		tf.summary.scalar('regularization_loss', model.regularization_loss)
++		tf.summary.scalar('stop_token_loss', model.stop_token_loss)
++		tf.summary.scalar('loss', model.loss)
++		tf.summary.scalar('learning_rate', model.learning_rate) #Control learning rate decay speed
++		if hparams.tacotron_teacher_forcing_mode == 'scheduled':
++			tf.summary.scalar('teacher_forcing_ratio', model.ratio) #Control teacher forcing ratio decay when mode = 'scheduled'
++		gradient_norms = [tf.norm(grad) for grad in model.gradients]
++		tf.summary.histogram('gradient_norm', gradient_norms)
++		tf.summary.scalar('max_gradient_norm', tf.reduce_max(gradient_norms)) #visualize gradients (in case of explosion)
++		return tf.summary.merge_all()
+ 
+ def add_eval_stats(summary_writer, step, linear_loss, before_loss, after_loss, stop_token_loss, loss):
+-    values = [
+-        tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_before_loss', simple_value=before_loss),
+-        tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_after_loss', simple_value=after_loss),
+-        tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/stop_token_loss', simple_value=stop_token_loss),
+-        tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_loss', simple_value=loss),
+-    ]
+-    if linear_loss is not None:
+-        values.append(tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_linear_loss', simple_value=linear_loss))
+-    test_summary = tf.Summary(value=values)
+-    summary_writer.add_summary(test_summary, step)
+-
++	values = [
++	tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_before_loss', simple_value=before_loss),
++	tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_after_loss', simple_value=after_loss),
++	tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/stop_token_loss', simple_value=stop_token_loss),
++	tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_loss', simple_value=loss),
++	]
++	if linear_loss is not None:
++		values.append(tf.Summary.Value(tag='Tacotron_eval_model/eval_stats/eval_linear_loss', simple_value=linear_loss))
++	test_summary = tf.Summary(value=values)
++	summary_writer.add_summary(test_summary, step)
+ 
+ def time_string():
+-    return datetime.now().strftime('%Y-%m-%d %H:%M')
+-
++	return datetime.now().strftime('%Y-%m-%d %H:%M')
+ 
+ def model_train_mode(args, feeder, hparams, global_step):
+-    with tf.variable_scope('Tacotron_model', reuse=tf.AUTO_REUSE) as scope:
+-        model_name = None
+-        if args.model == 'Tacotron-2':
+-            model_name = 'Tacotron'
+-        model = create_model(model_name or args.model, hparams)
+-        if hparams.predict_linear:
+-            model.initialize(feeder.inputs, feeder.input_lengths, feeder.mel_targets, feeder.token_targets,
+-                             linear_targets=feeder.linear_targets,
+-                             targets_lengths=feeder.targets_lengths, global_step=global_step,
+-                             is_training=True, split_infos=feeder.split_infos, tone_input=feeder.tone_input,
+-                             language_id=feeder.language_id)
+-        else:
+-            model.initialize(feeder.inputs, feeder.input_lengths, feeder.mel_targets, feeder.token_targets,
+-                             targets_lengths=feeder.targets_lengths, global_step=global_step,
+-                             is_training=True, split_infos=feeder.split_infos, tone_input=feeder.tone_input,
+-                             language_id=feeder.language_id)
+-        model.add_loss()
+-        model.add_optimizer(global_step)
+-        stats = add_train_stats(model, hparams)
+-        return model, stats
+-
++	with tf.variable_scope('Tacotron_model', reuse=tf.AUTO_REUSE) as scope:
++		model_name = None
++		if args.model == 'Tacotron-2':
++			model_name = 'Tacotron'
++		model = create_model(model_name or args.model, hparams)
++		if hparams.predict_linear:
++			model.initialize(feeder.inputs, feeder.input_lengths, feeder.mel_targets, feeder.token_targets, linear_targets=feeder.linear_targets,
++				targets_lengths=feeder.targets_lengths, global_step=global_step,
++				is_training=True, split_infos=feeder.split_infos)
++		else:
++			model.initialize(feeder.inputs, feeder.input_lengths, feeder.mel_targets, feeder.token_targets,
++				targets_lengths=feeder.targets_lengths, global_step=global_step,
++				is_training=True, split_infos=feeder.split_infos)
++		model.add_loss()
++		model.add_optimizer(global_step)
++		stats = add_train_stats(model, hparams)
++		return model, stats
+ 
+ def model_test_mode(args, feeder, hparams, global_step):
+-    with tf.variable_scope('Tacotron_model', reuse=tf.AUTO_REUSE) as scope:
+-        model_name = None
+-        if args.model == 'Tacotron-2':
+-            model_name = 'Tacotron'
+-        model = create_model(model_name or args.model, hparams)
+-        if hparams.predict_linear:
+-            model.initialize(feeder.eval_inputs, feeder.eval_input_lengths, feeder.eval_mel_targets,
+-                             feeder.eval_token_targets,
+-                             linear_targets=feeder.eval_linear_targets, targets_lengths=feeder.eval_targets_lengths,
+-                             global_step=global_step,
+-                             is_training=False, is_evaluating=True, split_infos=feeder.eval_split_infos,
+-                             tone_input=feeder.eval_tone_input, language_id=feeder.eval_language_id)
+-        else:
+-            model.initialize(feeder.eval_inputs, feeder.eval_input_lengths, feeder.eval_mel_targets,
+-                             feeder.eval_token_targets,
+-                             targets_lengths=feeder.eval_targets_lengths, global_step=global_step, is_training=False,
+-                             is_evaluating=True,
+-                             split_infos=feeder.eval_split_infos,
+-                             tone_input=feeder.eval_tone_input, language_id=feeder.eval_language_id)
+-        model.add_loss()
+-        return model
+-
++	with tf.variable_scope('Tacotron_model', reuse=tf.AUTO_REUSE) as scope:
++		model_name = None
++		if args.model == 'Tacotron-2':
++			model_name = 'Tacotron'
++		model = create_model(model_name or args.model, hparams)
++		if hparams.predict_linear:
++			model.initialize(feeder.eval_inputs, feeder.eval_input_lengths, feeder.eval_mel_targets, feeder.eval_token_targets,
++				linear_targets=feeder.eval_linear_targets, targets_lengths=feeder.eval_targets_lengths, global_step=global_step,
++				is_training=False, is_evaluating=True, split_infos=feeder.eval_split_infos)
++		else:
++			model.initialize(feeder.eval_inputs, feeder.eval_input_lengths, feeder.eval_mel_targets, feeder.eval_token_targets,
++				targets_lengths=feeder.eval_targets_lengths, global_step=global_step, is_training=False, is_evaluating=True, 
++				split_infos=feeder.eval_split_infos)
++		model.add_loss()
++		return model
+ 
+ def train(log_dir, args, hparams):
+-<<<<<<< HEAD
+ 	save_dir = os.path.join(log_dir, 'taco_pretrained')
+ 	plot_dir = os.path.join(log_dir, 'plots')
+ 	wav_dir = os.path.join(log_dir, 'wavs')
+@@ -389,293 +371,6 @@ def train(log_dir, args, hparams):
+ 			log('Exiting due to exception: {}'.format(e), slack=True)
+ 			traceback.print_exc()
+ 			coord.request_stop(e)
+-=======
+-    save_dir = os.path.join(log_dir, 'taco_pretrained')
+-    plot_dir = os.path.join(log_dir, 'plots')
+-    wav_dir = os.path.join(log_dir, 'wavs')
+-    mel_dir = os.path.join(log_dir, 'mel-spectrograms')
+-    eval_dir = os.path.join(log_dir, 'eval-dir')
+-    eval_plot_dir = os.path.join(eval_dir, 'plots')
+-    eval_wav_dir = os.path.join(eval_dir, 'wavs')
+-    tensorboard_dir = os.path.join(log_dir, 'tacotron_events')
+-    meta_folder = os.path.join(log_dir, 'metas')
+-    os.makedirs(save_dir, exist_ok=True)
+-    os.makedirs(plot_dir, exist_ok=True)
+-    os.makedirs(wav_dir, exist_ok=True)
+-    os.makedirs(mel_dir, exist_ok=True)
+-    os.makedirs(eval_dir, exist_ok=True)
+-    os.makedirs(eval_plot_dir, exist_ok=True)
+-    os.makedirs(eval_wav_dir, exist_ok=True)
+-    os.makedirs(tensorboard_dir, exist_ok=True)
+-    os.makedirs(meta_folder, exist_ok=True)
+-
+-    checkpoint_path = os.path.join(save_dir, 'tacotron_model.ckpt')
+-    input_path = os.path.join(args.base_dir, args.tacotron_input)
+-
+-    if hparams.predict_linear:
+-        linear_dir = os.path.join(log_dir, 'linear-spectrograms')
+-        os.makedirs(linear_dir, exist_ok=True)
+-
+-    log('Checkpoint path: {}'.format(checkpoint_path))
+-    log('Loading training data from: {}'.format(input_path))
+-    log('Using model: {}'.format(args.model))
+-    log(hparams_debug_string())
+-
+-    # Start by setting a seed for repeatability
+-    tf.set_random_seed(hparams.tacotron_random_seed)
+-
+-    # Set up data feeder
+-    coord = tf.train.Coordinator()
+-    with tf.variable_scope('datafeeder') as scope:
+-        feeder = Feeder(coord, input_path, hparams)
+-
+-    # Set up model:
+-    global_step = tf.Variable(0, name='global_step', trainable=False)
+-    model, stats = model_train_mode(args, feeder, hparams, global_step)
+-    eval_model = model_test_mode(args, feeder, hparams, global_step)
+-
+-    # Embeddings metadata
+-    char_embedding_meta = os.path.join(meta_folder, 'CharacterEmbeddings.tsv')
+-    if not os.path.isfile(char_embedding_meta):
+-        with open(char_embedding_meta, 'w', encoding='utf-8') as f:
+-            for symbol in symbols:
+-                if symbol == ' ':
+-                    symbol = '\\s'  # For visual purposes, swap space with \s
+-
+-                f.write('{}\n'.format(symbol))
+-
+-    char_embedding_meta = char_embedding_meta.replace(log_dir, '..')
+-
+-    # Book keeping
+-    step = 0
+-    time_window = ValueWindow(100)
+-    loss_window = ValueWindow(100)
+-    saver = tf.train.Saver(max_to_keep=10)
+-
+-    log('Tacotron training set to a maximum of {} steps'.format(args.tacotron_train_steps))
+-
+-    # Memory allocation on the GPU as needed
+-    config = tf.ConfigProto()
+-    config.gpu_options.allow_growth = True
+-    config.allow_soft_placement = True
+-
+-    # Train
+-    with tf.Session(config=config) as sess:
+-        try:
+-            summary_writer = tf.summary.FileWriter(tensorboard_dir, sess.graph)
+-
+-            sess.run(tf.global_variables_initializer())
+-
+-            # saved model restoring
+-            if args.restore:
+-                # Restore saved model if the user requested it, default = True
+-                try:
+-                    checkpoint_state = tf.train.get_checkpoint_state(save_dir)
+-
+-                    if (checkpoint_state and checkpoint_state.model_checkpoint_path):
+-                        log('Loading checkpoint {}'.format(checkpoint_state.model_checkpoint_path), slack=True)
+-                        saver.restore(sess, checkpoint_state.model_checkpoint_path)
+-
+-                    else:
+-                        log('No model to load at {}'.format(save_dir), slack=True)
+-                        saver.save(sess, checkpoint_path, global_step=global_step)
+-
+-                except tf.errors.OutOfRangeError as e:
+-                    log('Cannot restore checkpoint: {}'.format(e), slack=True)
+-            else:
+-                log('Starting new training!', slack=True)
+-                saver.save(sess, checkpoint_path, global_step=global_step)
+-
+-            # initializing feeder
+-            feeder.start_threads(sess)
+-
+-            # Training loop
+-            while not coord.should_stop() and step < args.tacotron_train_steps:
+-                start_time = time.time()
+-                step, loss, opt = sess.run([global_step, model.loss, model.optimize])
+-                time_window.append(time.time() - start_time)
+-                loss_window.append(loss)
+-                message = 'Step {:7d} [{:.3f} sec/step, loss={:.5f}, avg_loss={:.5f}]'.format(
+-                    step, time_window.average, loss, loss_window.average)
+-                log(message, end='\r', slack=(step % args.checkpoint_interval == 0))
+-
+-                if loss > 1000 or np.isnan(loss):
+-                    log('Loss exploded to {:.5f} at step {}'.format(loss, step))
+-                    raise Exception('Loss exploded')
+-
+-                if step % args.summary_interval == 0:
+-                    log('\nWriting summary at step {}'.format(step))
+-                    summary_writer.add_summary(sess.run(stats), step)
+-
+-                # if step % args.eval_interval == 0:
+-                #     # Run eval and save eval stats
+-                #     log('\nRunning evaluation at step {}'.format(step))
+-                #
+-                #     eval_losses = []
+-                #     before_losses = []
+-                #     after_losses = []
+-                #     stop_token_losses = []
+-                #     linear_losses = []
+-                #     linear_loss = None
+-                #
+-                #     if hparams.predict_linear:
+-                #         for i in tqdm(range(feeder.test_steps)):
+-                #             eloss, before_loss, after_loss, stop_token_loss, linear_loss, mel_p, mel_t, t_len, align, lin_p, lin_t = sess.run(
+-                #                 [
+-                #                     eval_model.tower_loss[0], eval_model.tower_before_loss[0],
+-                #                     eval_model.tower_after_loss[0],
+-                #                     eval_model.tower_stop_token_loss[0], eval_model.tower_linear_loss[0],
+-                #                     eval_model.tower_mel_outputs[0][0],
+-                #                     eval_model.tower_mel_targets[0][0], eval_model.tower_targets_lengths[0][0],
+-                #                     eval_model.tower_alignments[0][0], eval_model.tower_linear_outputs[0][0],
+-                #                     eval_model.tower_linear_targets[0][0],
+-                #                 ])
+-                #             eval_losses.append(eloss)
+-                #             before_losses.append(before_loss)
+-                #             after_losses.append(after_loss)
+-                #             stop_token_losses.append(stop_token_loss)
+-                #             linear_losses.append(linear_loss)
+-                #         linear_loss = sum(linear_losses) / len(linear_losses)
+-                #
+-                #         wav = audio.inv_linear_spectrogram(lin_p.T, hparams)
+-                #         audio.save_wav(wav,
+-                #                        os.path.join(eval_wav_dir, 'step-{}-eval-wave-from-linear.wav'.format(step)),
+-                #                        sr=hparams.sample_rate)
+-                #
+-                #     else:
+-                #         for i in tqdm(range(feeder.test_steps)):
+-                #             eloss, before_loss, after_loss, stop_token_loss, mel_p, mel_t, t_len, align = sess.run([
+-                #                 eval_model.tower_loss[0], eval_model.tower_before_loss[0],
+-                #                 eval_model.tower_after_loss[0],
+-                #                 eval_model.tower_stop_token_loss[0], eval_model.tower_mel_outputs[0][0],
+-                #                 eval_model.tower_mel_targets[0][0],
+-                #                 eval_model.tower_targets_lengths[0][0], eval_model.tower_alignments[0][0]
+-                #             ])
+-                #             eval_losses.append(eloss)
+-                #             before_losses.append(before_loss)
+-                #             after_losses.append(after_loss)
+-                #             stop_token_losses.append(stop_token_loss)
+-                #
+-                #     eval_loss = sum(eval_losses) / len(eval_losses)
+-                #     before_loss = sum(before_losses) / len(before_losses)
+-                #     after_loss = sum(after_losses) / len(after_losses)
+-                #     stop_token_loss = sum(stop_token_losses) / len(stop_token_losses)
+-                #
+-                #     log('Saving eval log to {}..'.format(eval_dir))
+-                #     # Save some log to monitor model improvement on same unseen sequence
+-                #     wav = audio.inv_mel_spectrogram(mel_p.T, hparams)
+-                #     audio.save_wav(wav, os.path.join(eval_wav_dir, 'step-{}-eval-wave-from-mel.wav'.format(step)),
+-                #                    sr=hparams.sample_rate)
+-                #
+-                #     plot.plot_alignment(align, os.path.join(eval_plot_dir, 'step-{}-eval-align.png'.format(step)),
+-                #                         title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
+-                #                                                                     eval_loss),
+-                #                         max_len=t_len // hparams.outputs_per_step)
+-                #     plot.plot_spectrogram(mel_p,
+-                #                           os.path.join(eval_plot_dir, 'step-{}-eval-mel-spectrogram.png'.format(step)),
+-                #                           title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
+-                #                                                                       eval_loss),
+-                #                           target_spectrogram=mel_t,
+-                #                           max_len=t_len)
+-                #
+-                #     if hparams.predict_linear:
+-                #         plot.plot_spectrogram(lin_p, os.path.join(eval_plot_dir,
+-                #                                                   'step-{}-eval-linear-spectrogram.png'.format(step)),
+-                #                               title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(),
+-                #                                                                           step, eval_loss),
+-                #                               target_spectrogram=lin_t,
+-                #                               max_len=t_len, auto_aspect=True)
+-                #
+-                #     log('Eval loss for global step {}: {:.3f}'.format(step, eval_loss))
+-                #     log('Writing eval summary!')
+-                #     add_eval_stats(summary_writer, step, linear_loss, before_loss, after_loss, stop_token_loss,
+-                #                    eval_loss)
+-
+-                if step % args.checkpoint_interval == 0 or step == args.tacotron_train_steps or step == 300:
+-                    # Save model and current global step
+-                    saver.save(sess, checkpoint_path, global_step=global_step)
+-
+-                    log('\nSaving alignment, Mel-Spectrograms and griffin-lim inverted waveform..')
+-                    if hparams.predict_linear:
+-                        input_seq, mel_prediction, linear_prediction, alignment, target, target_length, linear_target = sess.run(
+-                            [
+-                                model.tower_inputs[0][0],
+-                                model.tower_mel_outputs[0][0],
+-                                model.tower_linear_outputs[0][0],
+-                                model.tower_alignments[0][0],
+-                                model.tower_mel_targets[0][0],
+-                                model.tower_targets_lengths[0][0],
+-                                model.tower_linear_targets[0][0],
+-                            ])
+-
+-                        # save predicted linear spectrogram to disk (debug)
+-                        linear_filename = 'linear-prediction-step-{}.npy'.format(step)
+-                        np.save(os.path.join(linear_dir, linear_filename), linear_prediction.T, allow_pickle=False)
+-
+-                        # save griffin lim inverted wav for debug (linear -> wav)
+-                        wav = audio.inv_linear_spectrogram(linear_prediction.T, hparams)
+-                        audio.save_wav(wav, os.path.join(wav_dir, 'step-{}-wave-from-linear.wav'.format(step)),
+-                                       sr=hparams.sample_rate)
+-
+-                        # Save real and predicted linear-spectrogram plot to disk (control purposes)
+-                        plot.plot_spectrogram(linear_prediction,
+-                                              os.path.join(plot_dir, 'step-{}-linear-spectrogram.png'.format(step)),
+-                                              title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(),
+-                                                                                          step, loss),
+-                                              target_spectrogram=linear_target,
+-                                              max_len=target_length, auto_aspect=True)
+-
+-                    else:
+-                        input_seq, mel_prediction, alignment, target, target_length = sess.run([
+-                            model.tower_inputs[0][0],
+-                            model.tower_mel_outputs[0][0],
+-                            model.tower_alignments[0][0],
+-                            model.tower_mel_targets[0][0],
+-                            model.tower_targets_lengths[0][0],
+-                        ])
+-
+-                    # save predicted mel spectrogram to disk (debug)
+-                    mel_filename = 'mel-prediction-step-{}.npy'.format(step)
+-                    np.save(os.path.join(mel_dir, mel_filename), mel_prediction.T, allow_pickle=False)
+-
+-                    # save griffin lim inverted wav for debug (mel -> wav)
+-                    wav = audio.inv_mel_spectrogram(mel_prediction.T, hparams)
+-                    audio.save_wav(wav, os.path.join(wav_dir, 'step-{}-wave-from-mel.wav'.format(step)),
+-                                   sr=hparams.sample_rate)
+-
+-                    # save alignment plot to disk (control purposes)
+-                    plot.plot_alignment(alignment, os.path.join(plot_dir, 'step-{}-align.png'.format(step)),
+-                                        title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
+-                                                                                    loss),
+-                                        max_len=target_length // hparams.outputs_per_step)
+-                    # save real and predicted mel-spectrogram plot to disk (control purposes)
+-                    plot.plot_spectrogram(mel_prediction,
+-                                          os.path.join(plot_dir, 'step-{}-mel-spectrogram.png'.format(step)),
+-                                          title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
+-                                                                                      loss), target_spectrogram=target,
+-                                          max_len=target_length)
+-                    log('Input at step {}: {}'.format(step, sequence_to_text(input_seq)))
+-
+-                if step % args.embedding_interval == 0 or step == args.tacotron_train_steps or step == 1:
+-                    # Get current checkpoint state
+-                    checkpoint_state = tf.train.get_checkpoint_state(save_dir)
+-                    checkpoint_state = tf.train.get_checkpoint_state(save_dir)
+-
+-                    # Update Projector
+-                    log('\nSaving Model Character Embeddings visualization..')
+-                    add_embedding_stats(summary_writer, [model.embedding_table.name], [char_embedding_meta],
+-                                        checkpoint_state.model_checkpoint_path)
+-                    log('Tacotron Character embeddings have been updated on tensorboard!')
+-
+-            log('Tacotron training complete after {} global steps!'.format(args.tacotron_train_steps), slack=True)
+-            return save_dir
+-
+-        except Exception as e:
+-            log('Exiting due to exception: {}'.format(e), slack=True)
+-            traceback.print_exc()
+-            coord.request_stop(e)
+-
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 
+ def tacotron_train(args, log_dir, hparams):
+-    return train(log_dir, args, hparams)
++	return train(log_dir, args, hparams)
+diff --git a/tacotron/utils/symbols.py b/tacotron/utils/symbols.py
+index a1a9f10..79023cf 100644
+--- a/tacotron/utils/symbols.py
++++ b/tacotron/utils/symbols.py
+@@ -5,22 +5,9 @@ The default is a set of ASCII characters that works well for English or text tha
+ through Unidecode. For other data, you can modify _characters. See TRAINING_DATA.md for details.
+ '''
+ 
+-_pad = '_'
+-_eos = '~'
+-_pinyinchars = 'abcdefghijklmnopqrstuvwxyz1234567890'
+-#_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? '
+-_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? #$%^'
+-_english2latin = 'ƖƗƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǂǄǅǆǇǈǉǊǋǌǍ'
++_pad        = '_'
++_eos        = '~'
++_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!\'(),-.:;? '
++_english2latin='ƖƗƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǂǄǅǆǇǈǉǊǋǌǍ'
+ # Export all symbols:
+ symbols = [_pad, _eos] + list(_characters) + list(_english2latin)
+-CMUPhonemes=['J', 'Q', 'X', 'AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'B',  'CH', 'D',  'DH', 'EH', 'ER', 'EY', 'F',  'G',  'HH', 'IH', 'IY', 'JH', 'K',  'L',  'M',  'N',  'NG', 'OW', 'OY', 'P',  'R',  'S',  'SH', 'T',  'TH', 'UH', 'UW', 'V',  'W',  'Y',  'Z',  'ZH', '0', '1', '2', '3']
+-puncs = '!\'(),-.:;?'
+-CMUPhonemes += list(puncs)
+-CMUPhonemes = [_pad, _eos] + CMUPhonemes
+-CMUPhonemes += '..'
+-CMUPhonemes += '"'
+-CMUPhonemes += '$   '
+-
+-en_stress = [0, 1, 2, 3]
+-cn_tone = [4, 5, 6, 7, 8]
+-tone = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+diff --git a/tacotron/utils/text.py b/tacotron/utils/text.py
+index d81f942..1116db7 100644
+--- a/tacotron/utils/text.py
++++ b/tacotron/utils/text.py
+@@ -1,140 +1,75 @@
+ import re
+ 
+ from . import cleaners
+-from .symbols import symbols, _pinyinchars, _english2latin, CMUPhonemes
++from .symbols import symbols
+ 
+ # Mappings from symbol to numeric ID and vice versa:
+ _symbol_to_id = {s: i for i, s in enumerate(symbols)}
+ _id_to_symbol = {i: s for i, s in enumerate(symbols)}
+-_phoneme_to_id = {s: i for i, s in enumerate(CMUPhonemes)}
+ 
+ # Regular expression matching text enclosed in curly braces:
+ _curly_re = re.compile(r'(.*?)\{(.+?)\}(.*)')
+ 
+-def split_by_single_space(text):
+-    res=[]
+-    cur_str=''
+-    space_cnt=0
+-    for ch in text:
+-        if ch ==' ' and space_cnt != 1:
+-            space_cnt = (space_cnt+1)
+-            res.append(cur_str)
+-            cur_str=''
+-        else:
+-            space_cnt=0
+-            cur_str+=ch
+-    if cur_str != '':
+-        res.append(cur_str)
+-    return res
+-
+-def phoneme_str_to_seq(phonemes):
+-    def _should_keep_phoneme(phoneme):
+-        return phoneme in _phoneme_to_id and phoneme != '_' and phoneme != '~'
+-
+-    phonemes=split_by_single_space(phonemes)
+-    new_phonemes=[]
+-    for ph in phonemes:
+-        if ph[-1].isdigit():
+-            new_phonemes.append(ph[:-1])
+-            new_phonemes.append(ph[-1])
+-        else:
+-            new_phonemes.append(ph)
+-    phonemes=new_phonemes
+-
+-    sequence = [_phoneme_to_id[p] for p in phonemes if _should_keep_phoneme(p)]
+-    # Append EOS token
+-    sequence.append(_phoneme_to_id['~'])
+-    # print(phonemes)
+-    # print(sequence)
+-    # print(len(phonemes))
+-    # print(len(sequence))
+-    # exit()
+-    return sequence
+-
+-def seq_to_cnen_mask(seq):
+-    mask = ''
+-    first_good = 0
+-    for t in seq:
+-        if _id_to_symbol[t] in _pinyinchars:
+-            first_good = 0
+-            break
+-        elif _id_to_symbol[t] in _english2latin:
+-            first_good = 1
+-            break
+-    prev = first_good
+-    for t in seq:
+-        if _id_to_symbol[t] in _pinyinchars:
+-            mask += str(0)
+-            prev = 0
+-        elif _id_to_symbol[t] in _english2latin:
+-            mask += str(1)
+-            prev = 1
+-        else:
+-            mask += str(prev)
+-    assert len(seq) == len(mask)
+-    return mask
+-
+ 
+ def text_to_sequence(text, cleaner_names):
+-    '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
++  '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
+ 
+-      The text can optionally have ARPAbet sequences enclosed in curly braces embedded
+-      in it. For example, "Turn left on {HH AW1 S S T AH0 N} Street."
++    The text can optionally have ARPAbet sequences enclosed in curly braces embedded
++    in it. For example, "Turn left on {HH AW1 S S T AH0 N} Street."
+ 
+-      Args:
+-        text: string to convert to a sequence
+-        cleaner_names: names of the cleaner functions to run the text through
++    Args:
++      text: string to convert to a sequence
++      cleaner_names: names of the cleaner functions to run the text through
+ 
+-      Returns:
+-        List of integers corresponding to the symbols in the text
+-    '''
+-    sequence = []
++    Returns:
++      List of integers corresponding to the symbols in the text
++  '''
++  sequence = []
+ 
+-    # Check for curly braces and treat their contents as ARPAbet:
+-    while len(text):
+-        m = _curly_re.match(text)
+-        if not m:
+-            sequence += _symbols_to_sequence(_clean_text(text, cleaner_names))
+-            break
+-        sequence += _symbols_to_sequence(
+-            _clean_text(m.group(1), cleaner_names))
+-        sequence += _arpabet_to_sequence(m.group(2))
+-        text = m.group(3)
++  # Check for curly braces and treat their contents as ARPAbet:
++  while len(text):
++    m = _curly_re.match(text)
++    if not m:
++      sequence += _symbols_to_sequence(_clean_text(text, cleaner_names))
++      break
++    sequence += _symbols_to_sequence(_clean_text(m.group(1), cleaner_names))
++    sequence += _arpabet_to_sequence(m.group(2))
++    text = m.group(3)
+ 
+-    # Append EOS token
+-    sequence.append(_symbol_to_id['~'])
+-    return sequence
++  # Append EOS token
++  sequence.append(_symbol_to_id['~'])
++  return sequence
+ 
+ 
+ def sequence_to_text(sequence):
+-    '''Converts a sequence of IDs back to a string'''
+-    result = ''
+-    for symbol_id in sequence:
+-        if symbol_id in _id_to_symbol:
+-            s = _id_to_symbol[symbol_id]
+-            # Enclose ARPAbet back in curly braces:
+-            if len(s) > 1 and s[0] == '@':
+-                s = '{%s}' % s[1:]
+-            result += s
+-    return result.replace('}{', ' ')
++  '''Converts a sequence of IDs back to a string'''
++  result = ''
++  for symbol_id in sequence:
++    if symbol_id in _id_to_symbol:
++      s = _id_to_symbol[symbol_id]
++      # Enclose ARPAbet back in curly braces:
++      if len(s) > 1 and s[0] == '@':
++        s = '{%s}' % s[1:]
++      result += s
++  return result.replace('}{', ' ')
+ 
+ 
+ def _clean_text(text, cleaner_names):
+-    for name in cleaner_names:
+-        cleaner = getattr(cleaners, name)
+-        if not cleaner:
+-            raise Exception('Unknown cleaner: %s' % name)
+-        text = cleaner(text)
+-    return text
++  for name in cleaner_names:
++    cleaner = getattr(cleaners, name)
++    if not cleaner:
++      raise Exception('Unknown cleaner: %s' % name)
++    text = cleaner(text)
++  return text
+ 
+ 
+ def _symbols_to_sequence(symbols):
+-    return [_symbol_to_id[s] for s in symbols if _should_keep_symbol(s)]
++  return [_symbol_to_id[s] for s in symbols if _should_keep_symbol(s)]
+ 
+ 
+ def _arpabet_to_sequence(text):
+-    return _symbols_to_sequence(['@' + s for s in text.split()])
++  return _symbols_to_sequence(['@' + s for s in text.split()])
+ 
+ 
+ def _should_keep_symbol(s):
+-    return s in _symbol_to_id and s != '_' and s != '~'
++  return s in _symbol_to_id and s is not '_' and s is not '~'
+diff --git a/train.py b/train.py
+index e9a935f..b397f37 100644
+--- a/train.py
++++ b/train.py
+@@ -94,11 +94,11 @@ def main():
+ 	parser.add_argument('--base_dir', default='')
+ 	parser.add_argument('--hparams', default='',
+ 		help='Hyperparameter overrides as a comma-separated list of name=value pairs')
+-	parser.add_argument('--tacotron_input', default='/home/lizijian/data0/tacotron_multi_lingual/tacotron/training_data/train.txt')
++	parser.add_argument('--tacotron_input', default='training_data/train.txt')
+ 	parser.add_argument('--wavenet_input', default='tacotron_output/gta/map.txt')
+ 	parser.add_argument('--name', help='Name of logging directory.')
+ 	parser.add_argument('--model', default='Tacotron')
+-	parser.add_argument('--input_dir', default='/home/lizijian/data0/tacotron_multi_lingual/tacotron/training_data', help='folder to contain inputs sentences/targets')
++	parser.add_argument('--input_dir', default='training_data', help='folder to contain inputs sentences/targets')
+ 	parser.add_argument('--output_dir', default='output', help='folder to contain synthesized mel spectrograms')
+ 	parser.add_argument('--mode', default='synthesis', help='mode for synthesis of tacotron after training')
+ 	parser.add_argument('--GTA', default='True', help='Ground truth aligned synthesis, defaults to True, only considered in Tacotron synthesis mode')
+@@ -107,11 +107,7 @@ def main():
+ 		help='Steps between running summary ops')
+ 	parser.add_argument('--embedding_interval', type=int, default=10000,
+ 		help='Steps between updating embeddings projection visualization')
+-<<<<<<< HEAD
+ 	parser.add_argument('--checkpoint_interval', type=int, default=2000,
+-=======
+-	parser.add_argument('--checkpoint_interval', type=int, default=500,
+->>>>>>> f33090dba9ba4bc52db8367abdc48841d13c48f8
+ 		help='Steps between writing checkpoints')
+ 	parser.add_argument('--eval_interval', type=int, default=1000,
+ 		help='Steps between eval on test data')
