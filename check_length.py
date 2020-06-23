@@ -1,4 +1,4 @@
-path = "training_ljspeech_wavernn_24k/cmu_long.txt"
+path = "/home/lizijian/data0/tacotron_multi_lingual/tacotron/training_data/train.txt"
 
 count = 0
 for line in open(path):

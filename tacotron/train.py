@@ -238,7 +238,7 @@ def train(log_dir, args, hparams):
                     step, time_window.average, loss, loss_window.average)
                 log(message, end='\r', slack=(step % args.checkpoint_interval == 0))
 
-                if loss > 100 or np.isnan(loss):
+                if loss > 1000 or np.isnan(loss):
                     log('Loss exploded to {:.5f} at step {}'.format(loss, step))
                     raise Exception('Loss exploded')
 
@@ -246,89 +246,89 @@ def train(log_dir, args, hparams):
                     log('\nWriting summary at step {}'.format(step))
                     summary_writer.add_summary(sess.run(stats), step)
 
-                if step % args.eval_interval == 0:
-                    # Run eval and save eval stats
-                    log('\nRunning evaluation at step {}'.format(step))
-
-                    eval_losses = []
-                    before_losses = []
-                    after_losses = []
-                    stop_token_losses = []
-                    linear_losses = []
-                    linear_loss = None
-
-                    if hparams.predict_linear:
-                        for i in tqdm(range(feeder.test_steps)):
-                            eloss, before_loss, after_loss, stop_token_loss, linear_loss, mel_p, mel_t, t_len, align, lin_p, lin_t = sess.run(
-                                [
-                                    eval_model.tower_loss[0], eval_model.tower_before_loss[0],
-                                    eval_model.tower_after_loss[0],
-                                    eval_model.tower_stop_token_loss[0], eval_model.tower_linear_loss[0],
-                                    eval_model.tower_mel_outputs[0][0],
-                                    eval_model.tower_mel_targets[0][0], eval_model.tower_targets_lengths[0][0],
-                                    eval_model.tower_alignments[0][0], eval_model.tower_linear_outputs[0][0],
-                                    eval_model.tower_linear_targets[0][0],
-                                ])
-                            eval_losses.append(eloss)
-                            before_losses.append(before_loss)
-                            after_losses.append(after_loss)
-                            stop_token_losses.append(stop_token_loss)
-                            linear_losses.append(linear_loss)
-                        linear_loss = sum(linear_losses) / len(linear_losses)
-
-                        wav = audio.inv_linear_spectrogram(lin_p.T, hparams)
-                        audio.save_wav(wav,
-                                       os.path.join(eval_wav_dir, 'step-{}-eval-wave-from-linear.wav'.format(step)),
-                                       sr=hparams.sample_rate)
-
-                    else:
-                        for i in tqdm(range(feeder.test_steps)):
-                            eloss, before_loss, after_loss, stop_token_loss, mel_p, mel_t, t_len, align = sess.run([
-                                eval_model.tower_loss[0], eval_model.tower_before_loss[0],
-                                eval_model.tower_after_loss[0],
-                                eval_model.tower_stop_token_loss[0], eval_model.tower_mel_outputs[0][0],
-                                eval_model.tower_mel_targets[0][0],
-                                eval_model.tower_targets_lengths[0][0], eval_model.tower_alignments[0][0]
-                            ])
-                            eval_losses.append(eloss)
-                            before_losses.append(before_loss)
-                            after_losses.append(after_loss)
-                            stop_token_losses.append(stop_token_loss)
-
-                    eval_loss = sum(eval_losses) / len(eval_losses)
-                    before_loss = sum(before_losses) / len(before_losses)
-                    after_loss = sum(after_losses) / len(after_losses)
-                    stop_token_loss = sum(stop_token_losses) / len(stop_token_losses)
-
-                    log('Saving eval log to {}..'.format(eval_dir))
-                    # Save some log to monitor model improvement on same unseen sequence
-                    wav = audio.inv_mel_spectrogram(mel_p.T, hparams)
-                    audio.save_wav(wav, os.path.join(eval_wav_dir, 'step-{}-eval-wave-from-mel.wav'.format(step)),
-                                   sr=hparams.sample_rate)
-
-                    plot.plot_alignment(align, os.path.join(eval_plot_dir, 'step-{}-eval-align.png'.format(step)),
-                                        title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
-                                                                                    eval_loss),
-                                        max_len=t_len // hparams.outputs_per_step)
-                    plot.plot_spectrogram(mel_p,
-                                          os.path.join(eval_plot_dir, 'step-{}-eval-mel-spectrogram.png'.format(step)),
-                                          title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
-                                                                                      eval_loss),
-                                          target_spectrogram=mel_t,
-                                          max_len=t_len)
-
-                    if hparams.predict_linear:
-                        plot.plot_spectrogram(lin_p, os.path.join(eval_plot_dir,
-                                                                  'step-{}-eval-linear-spectrogram.png'.format(step)),
-                                              title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(),
-                                                                                          step, eval_loss),
-                                              target_spectrogram=lin_t,
-                                              max_len=t_len, auto_aspect=True)
-
-                    log('Eval loss for global step {}: {:.3f}'.format(step, eval_loss))
-                    log('Writing eval summary!')
-                    add_eval_stats(summary_writer, step, linear_loss, before_loss, after_loss, stop_token_loss,
-                                   eval_loss)
+                # if step % args.eval_interval == 0:
+                #     # Run eval and save eval stats
+                #     log('\nRunning evaluation at step {}'.format(step))
+                #
+                #     eval_losses = []
+                #     before_losses = []
+                #     after_losses = []
+                #     stop_token_losses = []
+                #     linear_losses = []
+                #     linear_loss = None
+                #
+                #     if hparams.predict_linear:
+                #         for i in tqdm(range(feeder.test_steps)):
+                #             eloss, before_loss, after_loss, stop_token_loss, linear_loss, mel_p, mel_t, t_len, align, lin_p, lin_t = sess.run(
+                #                 [
+                #                     eval_model.tower_loss[0], eval_model.tower_before_loss[0],
+                #                     eval_model.tower_after_loss[0],
+                #                     eval_model.tower_stop_token_loss[0], eval_model.tower_linear_loss[0],
+                #                     eval_model.tower_mel_outputs[0][0],
+                #                     eval_model.tower_mel_targets[0][0], eval_model.tower_targets_lengths[0][0],
+                #                     eval_model.tower_alignments[0][0], eval_model.tower_linear_outputs[0][0],
+                #                     eval_model.tower_linear_targets[0][0],
+                #                 ])
+                #             eval_losses.append(eloss)
+                #             before_losses.append(before_loss)
+                #             after_losses.append(after_loss)
+                #             stop_token_losses.append(stop_token_loss)
+                #             linear_losses.append(linear_loss)
+                #         linear_loss = sum(linear_losses) / len(linear_losses)
+                #
+                #         wav = audio.inv_linear_spectrogram(lin_p.T, hparams)
+                #         audio.save_wav(wav,
+                #                        os.path.join(eval_wav_dir, 'step-{}-eval-wave-from-linear.wav'.format(step)),
+                #                        sr=hparams.sample_rate)
+                #
+                #     else:
+                #         for i in tqdm(range(feeder.test_steps)):
+                #             eloss, before_loss, after_loss, stop_token_loss, mel_p, mel_t, t_len, align = sess.run([
+                #                 eval_model.tower_loss[0], eval_model.tower_before_loss[0],
+                #                 eval_model.tower_after_loss[0],
+                #                 eval_model.tower_stop_token_loss[0], eval_model.tower_mel_outputs[0][0],
+                #                 eval_model.tower_mel_targets[0][0],
+                #                 eval_model.tower_targets_lengths[0][0], eval_model.tower_alignments[0][0]
+                #             ])
+                #             eval_losses.append(eloss)
+                #             before_losses.append(before_loss)
+                #             after_losses.append(after_loss)
+                #             stop_token_losses.append(stop_token_loss)
+                #
+                #     eval_loss = sum(eval_losses) / len(eval_losses)
+                #     before_loss = sum(before_losses) / len(before_losses)
+                #     after_loss = sum(after_losses) / len(after_losses)
+                #     stop_token_loss = sum(stop_token_losses) / len(stop_token_losses)
+                #
+                #     log('Saving eval log to {}..'.format(eval_dir))
+                #     # Save some log to monitor model improvement on same unseen sequence
+                #     wav = audio.inv_mel_spectrogram(mel_p.T, hparams)
+                #     audio.save_wav(wav, os.path.join(eval_wav_dir, 'step-{}-eval-wave-from-mel.wav'.format(step)),
+                #                    sr=hparams.sample_rate)
+                #
+                #     plot.plot_alignment(align, os.path.join(eval_plot_dir, 'step-{}-eval-align.png'.format(step)),
+                #                         title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
+                #                                                                     eval_loss),
+                #                         max_len=t_len // hparams.outputs_per_step)
+                #     plot.plot_spectrogram(mel_p,
+                #                           os.path.join(eval_plot_dir, 'step-{}-eval-mel-spectrogram.png'.format(step)),
+                #                           title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step,
+                #                                                                       eval_loss),
+                #                           target_spectrogram=mel_t,
+                #                           max_len=t_len)
+                #
+                #     if hparams.predict_linear:
+                #         plot.plot_spectrogram(lin_p, os.path.join(eval_plot_dir,
+                #                                                   'step-{}-eval-linear-spectrogram.png'.format(step)),
+                #                               title='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(),
+                #                                                                           step, eval_loss),
+                #                               target_spectrogram=lin_t,
+                #                               max_len=t_len, auto_aspect=True)
+                #
+                #     log('Eval loss for global step {}: {:.3f}'.format(step, eval_loss))
+                #     log('Writing eval summary!')
+                #     add_eval_stats(summary_writer, step, linear_loss, before_loss, after_loss, stop_token_loss,
+                #                    eval_loss)
 
                 if step % args.checkpoint_interval == 0 or step == args.tacotron_train_steps or step == 300:
                     # Save model and current global step
