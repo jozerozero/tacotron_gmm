@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-NGPU_tac=1
+NGPU_tac=2
 NGPU_wav=4
 # Default hyperparameters
 hparams = tf.contrib.training.HParams(
@@ -137,7 +137,7 @@ hparams = tf.contrib.training.HParams(
 	prenet_layers = [256, 256], #number of layers and number of units of prenet
 	decoder_layers = 2, #number of decoder lstm layers
 	decoder_lstm_units = 1024, #number of decoder lstm units on each layer
-	max_iters = 2000, #Max decoder steps during inference (Just for safety from infinite loop cases)
+	max_iters = 10000, #Max decoder steps during inference (Just for safety from infinite loop cases)
 
 	#Residual postnet
 	postnet_num_layers = 5, #number of postnet convolutional layers
@@ -219,7 +219,7 @@ hparams = tf.contrib.training.HParams(
 	tacotron_swap_with_cpu = False, #Whether to use cpu as support to gpu for decoder computation (Not recommended: may cause major slowdowns! Only use when critical!)
 
 	#train/test split ratios, mini-batches sizes
-	tacotron_batch_size = 32 * NGPU_tac, #number of training samples on each training steps
+	tacotron_batch_size = 64 * NGPU_tac, #number of training samples on each training steps
 
 	#Tacotron Batch synthesis supports ~16x the training batch size (no gradients during testing). 
 	#Training Tacotron with unmasked paddings makes it aware of them, which makes synthesis times different from training. We thus recommend masking the encoder.
@@ -317,6 +317,7 @@ hparams = tf.contrib.training.HParams(
 	"ji4 zhe3 liao3 jie3 dao4 , xi3 ma3 la1 ya3 cai3 qu3 bu4 duo1 jian4 de lian2 xi2 mo2 shi4 , ling4 yi1 wei4 jiu4 shi4 chen2 xiao3 yu3 ,",
 	"liang3 ren2 qi4 zhi4 hun4 da1 , you3 dian3 nan2 zhu3 wai4 nv3 zhu3 nei4 de yi4 si1 ,",
 	"bu4 guo4 ta1 men zhi3 shi4 da1 dang4 , bu2 shi4 chang2 jian4 de fu1 qi1 dang4 mo2 shi4 . yong4 yu2 jian4 jun1 de hua4 lai2 shuo1 , zhe4 ge4 mo2 shi4 ye3 bu4 chang2 jian4 .",
+	"cong2 hang2 ye4 lai2 kan4  ,  fu2 wu4 ye4 shou4 chong1 ji1 zui4 da4  .  shu4 ju4 xian3 shi4  er4 yue4 fen4   jiao1 tong1 yun4 shu1  ,  zhu4 su4 can1 yin3  ,  lv3 you2  ,  ju1 min2 fu2 wu4 deng3 ren2 yuan2 ju4 ji2 xing4 jiao4 qiang2 de xiao1 fei4 hang2 ye4 xu1 qiu2 zhou4 jian3  ,  shang1 wu4 huo2 dong4 zhi3 shu4 jun1 luo4 zhi4 bai3 fen1 zhi1 er4 shi2 yi3 xia4  .  bu4 guo4  ,  yu3 kang4 ji1 yi4 qing2 xiang1 guan1 de yi1 yao4 zhi4 zao4 ye4 yi3 ji2 yu3 sheng1 huo2 xu1 qiu2 xiang1 guan1 de nong2 fu4 shi2 pin3 jia1 gong1  ,  shi2 pin3 ji2 jiu3 yin3 liao4 jing1 zhi4 cha2 deng3 hang2 ye4 pi1 ai2 mu3 ai2 hui2 luo4 fu2 du4 xiang1 dui4 jiao4 xiao3  .  de2 yi4 yu2 yun2 ban4 gong1  ,  zai4 xian4 jiao4 yu4 he2 yuan3 cheng2 yi1 liao2 deng3 xin1 ye4 tai4 xin1 ji4 shu4 de zhi1 cheng1  ,  dian4 xin4  ,  hu4 lian2 wang3 ruan3 jian4 hang2 ye4 pi1 ai2 mu3 ai2 ming2 xian3 hao3 yu2 fu2 wu4 ye4 zong3 ti3 shui3 ping2 ,  chu2 ci3 wai4  , er4 yue4 fen4  ,  jin1 rong2 ye4 pi1 ai2 mu3 ai2 wei4 bai3 fen1 zhi1 wu3 shi2 dian3 yi1 ,  ji4 xu4 bao3 chi2 zai4 kuo4 zhang1 qu1 jian1  ,  dui4 yi4 qing2 fang2 kong4 he2 jing1 ji4 she4 hui4 fa1 zhan3 fa1 hui1 le zhong4 yao4 zuo4 yong4 . guan1 fang1 zui4 xin1 pi1 lu4 shu4 ju4 yi3 jing1 chuan2 di4 chu1 zhi4 zao4 ye4 fu4 su1 de ji1 ji2 xin4 hao4  .  ju4 tong3 ji4 ju2 shu4 ju4  ,  jie2 zhi4 er4 yue4 er4 shi2 wu3 ri4  ,  quan2 guo2 cai3 gou4 jing1 li3 diao4 cha2 qi3 ye4 zhong1  ,  da4 zhong1 xing2 qi3 ye4 fu4 gong1 lv4 wei4 bai3 fen1 zhi1 qi1 shi2 ba1 dian3 jiu3 ,  qi2 zhong1 da4 zhong1 xing2 zhi4 zao4 ye4 qi3 ye4 da2 dao4 ba1 shi2 wu3 dian3 liu4 . "
 	]
 
 	)

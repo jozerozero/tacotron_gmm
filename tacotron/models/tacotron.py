@@ -7,6 +7,12 @@ from tensorflow.contrib.seq2seq import dynamic_decode
 from tacotron.models.Architecture_wrappers import TacotronEncoderCell, TacotronDecoderCell
 from tacotron.models.custom_decoder import CustomDecoder
 from tacotron.models.attention import LocationSensitiveAttention
+from tacotron.models.GMM_Architecture_wrappers import TacotronGMMDecoderCell
+from tacotron.models.simple_bahdanau_attention import GMMAttention
+# from tacotron.models.custom_decoder import CustomDecoder
+# from tacotron.models.attention import LocationSensitiveAttention
+
+
 
 import numpy as np
 
@@ -129,9 +135,11 @@ class Tacotron():
 					#Attention Decoder Prenet
 					prenet = Prenet(is_training, layers_sizes=hp.prenet_layers, drop_rate=hp.tacotron_dropout_rate, scope='decoder_prenet')
 					#Attention Mechanism
-					attention_mechanism = LocationSensitiveAttention(hp.attention_dim, encoder_outputs, hparams=hp,
-						mask_encoder=hp.mask_encoder, memory_sequence_length=tf.reshape(tower_input_lengths[i], [-1]), smoothing=hp.smoothing,
-						cumulate_weights=hp.cumulative_weights)
+					# attention_mechanism = LocationSensitiveAttention(hp.attention_dim, encoder_outputs, hparams=hp,
+					# 	mask_encoder=hp.mask_encoder, memory_sequence_length=tf.reshape(tower_input_lengths[i], [-1]), smoothing=hp.smoothing,
+					# 	cumulate_weights=hp.cumulative_weights)
+					attention_mechanism = GMMAttention(num_units=hp.attention_dim, memory=encoder_outputs, memory_sequence_length=tf.reshape(tower_input_lengths[i], [-1]))
+
 					#Decoder LSTM Cells
 					decoder_lstm = DecoderRNN(is_training, layers=hp.decoder_layers,
 						size=hp.decoder_lstm_units, zoneout=hp.tacotron_zoneout_rate, scope='decoder_LSTM')
@@ -142,13 +150,13 @@ class Tacotron():
 
 
 					#Decoder Cell ==> [batch_size, decoder_steps, num_mels * r] (after decoding)
-					decoder_cell = TacotronDecoderCell(
-						prenet,
-						attention_mechanism,
-						decoder_lstm,
-						frame_projection,
-						stop_projection)
-
+					# decoder_cell = TacotronDecoderCell(
+					# 	prenet,
+					# 	attention_mechanism,
+					# 	decoder_lstm,
+					# 	frame_projection,
+					# 	stop_projection)
+					decoder_cell = TacotronGMMDecoderCell(prenet=prenet, attention_mechanism=attention_mechanism, rnn_cell = decoder_lstm, frame_projection=frame_projection,  stop_projection=stop_projection)
 
 					#Define the helper for our decoder
 					if is_training or is_evaluating or gta:

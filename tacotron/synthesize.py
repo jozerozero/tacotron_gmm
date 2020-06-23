@@ -3,12 +3,32 @@ import os
 import re
 import time
 from time import sleep
-
+# from grifin_lim_synthesis import griffin_synthesis
 import tensorflow as tf
 from hparams import hparams, hparams_debug_string
 from infolog import log
 from tacotron.synthesizer import Synthesizer
 from tqdm import tqdm
+
+
+import numpy as np
+from datasets.audio import *
+import os
+from hparams import hparams
+from glob import glob
+import os
+
+
+def griffin_synthesis(mel_path):
+        for mel_file_path in glob(os.path.join(mel_path, "*.npy")):
+                mel_spectro = np.load(mel_file_path)
+                mel_spectro_shape = mel_spectro.shape
+                mel_file_name = os.path.basename(mel_file_path)
+                wav = inv_mel_spectrogram(mel_spectro.T, hparams)
+                print(os.path.join(mel_path, mel_file_name.replace("npy", "wav")))
+                save_wav(wav, os.path.join(mel_path, mel_file_name.replace("npy", "wav")), sr=hparams.sample_rate)
+        pass
+
 
 
 def generate_fast(model, text):
@@ -64,12 +84,13 @@ def run_single(args, checkpoint_path, output_dir, hparams, sentences):
 	log('Starting Synthesis Single')
 	for i, texts in enumerate(tqdm(sentences)):
 		start = time.time()
-		#basenames = ['batch_{:03d}_sentence_{:03d}'.format(i, j) for j in range(len(texts))]
-		#mel_filenames, speaker_ids = synth.synthesize(texts, basenames, eval_dir, log_dir, None)
+		basenames = ['batch_{:03d}_sentence_{:03d}'.format(i, j) for j in range(len(texts))]
+		mel_filenames, speaker_ids = synth.synthesize(texts, basenames, eval_dir, log_dir, None)
 		print(texts,eval_dir,log_dir)
 		synth.synthesize(texts, None, eval_dir, log_dir, None)
 
 	log('synthesized mel spectrograms at {}'.format(eval_dir))
+	griffin_synthesis(eval_dir)
 	return eval_dir
 
 def run_eval(args, checkpoint_path, output_dir, hparams, sentences):
@@ -102,6 +123,7 @@ def run_eval(args, checkpoint_path, output_dir, hparams, sentences):
 			for elems in zip(texts, mel_filenames, speaker_ids):
 				file.write('|'.join([str(x) for x in elems]) + '\n')
 	log('synthesized mel spectrograms at {}'.format(eval_dir))
+	griffin_synthesis(eval_dir)
 	return eval_dir
 
 def run_synthesis(args, checkpoint_path, output_dir, hparams):
@@ -125,6 +147,9 @@ def run_synthesis(args, checkpoint_path, output_dir, hparams):
 	with open(metadata_filename, encoding='utf-8') as f:
 		metadata = [line.strip().split('|') for line in f]
 		frame_shift_ms = hparams.hop_size / hparams.sample_rate
+		print(metadata[0])
+		print(len(metadata))
+		exit()
 		hours = sum([int(x[4]) for x in metadata]) * frame_shift_ms / (3600)
 		log('Loaded metadata for {} examples ({:.2f} hours)'.format(len(metadata), hours))
 
@@ -149,7 +174,8 @@ def run_synthesis(args, checkpoint_path, output_dir, hparams):
 
 def tacotron_synthesize(args, hparams, checkpoint, sentences=None):
 	output_dir = 'tacotron_' + args.output_dir
-
+	print(output_dir)
+	# exit()
 	try:
 		checkpoint_path = tf.train.get_checkpoint_state(checkpoint).model_checkpoint_path
 		log('loaded model at {}'.format(checkpoint_path))
@@ -165,10 +191,15 @@ def tacotron_synthesize(args, hparams, checkpoint, sentences=None):
 			hparams.tacotron_synthesis_batch_size, hparams.tacotron_num_gpus))
 
 	if args.mode == 'demo':
+		# print("demo")
 		return run_single(args, checkpoint_path, output_dir, hparams, sentences)
 	if args.mode == 'eval':
+		# print("eval")
+		# exit()
 		return run_eval(args, checkpoint_path, output_dir, hparams, sentences)
 	elif args.mode == 'synthesis':
+		# print("test")
+		# exit()
 		return run_synthesis(args, checkpoint_path, output_dir, hparams)
 	else:
 		run_live(args, checkpoint_path, hparams)
